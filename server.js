@@ -19,7 +19,10 @@ app.post("/api/send-command", (req, res) => {
 
 // NEW: Data APIs
 app.post("/api/update", (req, res) => {
+    console.log("Received Data:", req.body); // 👈 ADD THIS
+
     latestData = req.body;
+
     res.send("OK");
 });
 
