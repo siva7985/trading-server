@@ -20,7 +20,7 @@ app.post("/api/login", (req, res) => {
 
     console.log("LOGIN:", req.body);
 
-    if (username === "admin" && password === "1234") {
+    if (username === "admin" && password === "Nsrk798489") {
         const token = jwt.sign({ username }, SECRET, { expiresIn: "1d" });
         return res.json({ token });
     }
