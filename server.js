@@ -7,14 +7,18 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-const SECRET = "my_secret_key"; // 🔐 change later
+const SECRET = "my_secret_key"; // 🔐 change in production
 
 let command = "";
 let latestData = {};
 
-// 🔐 LOGIN API
+/* =========================
+   🔐 LOGIN API
+========================= */
 app.post("/api/login", (req, res) => {
     const { username, password } = req.body;
+
+    console.log("LOGIN:", req.body);
 
     if (username === "admin" && password === "1234") {
         const token = jwt.sign({ username }, SECRET, { expiresIn: "1d" });
@@ -24,7 +28,9 @@ app.post("/api/login", (req, res) => {
     res.status(401).json({ error: "Invalid credentials" });
 });
 
-// 🔐 MIDDLEWARE
+/* =========================
+   🔐 AUTH MIDDLEWARE
+========================= */
 function authenticate(req, res, next) {
     const authHeader = req.headers.authorization;
 
@@ -34,33 +40,56 @@ function authenticate(req, res, next) {
 
     jwt.verify(token, SECRET, (err, user) => {
         if (err) return res.status(403).send("Invalid token");
+
         req.user = user;
         next();
     });
 }
 
-// 🔐 PROTECTED COMMAND API
+/* =========================
+   📌 SEND COMMAND (Flutter → Server)
+   Protected API
+========================= */
 app.post("/api/send-command", authenticate, (req, res) => {
     command = req.body.command;
-    console.log("COMMAND:", command);
+
+    console.log("📌 COMMAND RECEIVED:", command);
+
     res.send("OK");
 });
 
-// EA fetch (no auth for now)
+/* =========================
+   🤖 EA COMMAND FETCH
+========================= */
 app.get("/api/command", (req, res) => {
-    res.send(command);
-    command = "";
-	res.send(temp);
+    const temp = command;
+
+    command = ""; // clear after read
+
+    res.send(temp || "");
 });
 
-// Data APIs
+/* =========================
+   📊 UPDATE DATA FROM EA
+========================= */
 app.post("/api/update", (req, res) => {
     latestData = req.body;
+
+    console.log("📊 DATA RECEIVED");
+
     res.send("OK");
 });
 
+/* =========================
+   📈 GET DATA (Flutter)
+========================= */
 app.get("/api/data", (req, res) => {
     res.json(latestData);
 });
 
-app.listen(3000, () => console.log("Server started"));
+/* =========================
+   🚀 START SERVER
+========================= */
+app.listen(3000, () => {
+    console.log("🚀 Server started on port 3000");
+});
