@@ -50,6 +50,7 @@ app.post("/api/send-command", authenticate, (req, res) => {
 app.get("/api/command", (req, res) => {
     res.send(command);
     command = "";
+	res.send(temp);
 });
 
 // Data APIs
