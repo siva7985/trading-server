@@ -43,19 +43,6 @@ app.post("/api/register", async (req, res) => {
   res.json({ message: "User created" });
 });
 
-app.get("/create-user", async (req, res) => {
-  const bcrypt = require("bcryptjs");
-
-  const hashed = await bcrypt.hash("Nsrk798489", 15);
-
-  await User.create({
-    username: "admin",
-    password: hashed
-  });
-
-  res.send("User created");
-});
-
 /* =========================
    🔐 LOGIN
 ========================= */
