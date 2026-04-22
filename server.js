@@ -13,7 +13,7 @@ const SECRET = "my_secret_key";
 /* =========================
    🔗 MONGODB CONNECT
 ========================= */
-mongoose.connect("mongodb+srv://admin:1234@tradingapp.t6uqbxa.mongodb.net/trading_app?retryWrites=true&w=majority")
+mongoose.connect("mongodb+srv://admin:Nsrk798489@tradingapp.t6uqbxa.mongodb.net/trading_app?retryWrites=true&w=majority")
   .then(() => console.log("MongoDB Connected"))
   .catch(err => console.log(err));
 
