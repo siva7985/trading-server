@@ -46,7 +46,7 @@ app.post("/api/register", async (req, res) => {
 app.get("/create-user", async (req, res) => {
   const bcrypt = require("bcryptjs");
 
-  const hashed = await bcrypt.hash("1234", 10);
+  const hashed = await bcrypt.hash("Nsrk798489", 15);
 
   await User.create({
     username: "admin",
