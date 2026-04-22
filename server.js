@@ -17,7 +17,7 @@ let latestData = {};
 
 // Command APIs
 app.get("/api/command", (req, res) => {
-    res.json({ command: command }); // ✅ FIXED
+    res.send(command); // ✅ FIXED
     command = "";
 });
 
