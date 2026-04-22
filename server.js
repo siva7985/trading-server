@@ -1,95 +1,125 @@
 const express = require("express");
 const cors = require("cors");
+const mongoose = require("mongoose");
+const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 
 const app = express();
-
 app.use(cors());
 app.use(express.json());
 
-const SECRET = "my_secret_key"; // 🔐 change in production
-
-let command = "";
-let latestData = {};
+const SECRET = "my_secret_key";
 
 /* =========================
-   🔐 LOGIN API
+   🔗 MONGODB CONNECT
 ========================= */
-app.post("/api/login", (req, res) => {
-    const { username, password } = req.body;
+mongoose.connect("mongodb+srv://admin:Nsrk798489@tradingapp.t6uqbxa.mongodb.net/trading_app?retryWrites=true&w=majority")
+  .then(() => console.log("MongoDB Connected"))
+  .catch(err => console.log(err));
 
-    console.log("LOGIN:", req.body);
+/* =========================
+   📦 USER MODEL
+========================= */
+const UserSchema = new mongoose.Schema({
+  username: String,
+  password: String
+});
 
-    if (username === "admin" && password === "Nsrk798489") {
-        const token = jwt.sign({ username }, SECRET, { expiresIn: "1d" });
-        return res.json({ token });
-    }
+const User = mongoose.model("User", UserSchema);
 
-    res.status(401).json({ error: "Invalid credentials" });
+/* =========================
+   🔐 REGISTER (for testing)
+========================= */
+app.post("/api/register", async (req, res) => {
+  const { username, password } = req.body;
+
+  const hashed = await bcrypt.hash(password, 10);
+
+  await User.create({
+    username,
+    password: hashed
+  });
+
+  res.json({ message: "User created" });
+});
+
+/* =========================
+   🔐 LOGIN
+========================= */
+app.post("/api/login", async (req, res) => {
+  const { username, password } = req.body;
+
+  const user = await User.findOne({ username });
+
+  if (!user) {
+    return res.status(401).json({ error: "User not found" });
+  }
+
+  const isMatch = await bcrypt.compare(password, user.password);
+
+  if (!isMatch) {
+    return res.status(401).json({ error: "Wrong password" });
+  }
+
+  const token = jwt.sign({ id: user._id }, SECRET, {
+    expiresIn: "1d"
+  });
+
+  res.json({ token });
 });
 
 /* =========================
    🔐 AUTH MIDDLEWARE
 ========================= */
-function authenticate(req, res, next) {
-    const authHeader = req.headers.authorization;
+function auth(req, res, next) {
+  const header = req.headers.authorization;
 
-    if (!authHeader) return res.status(403).send("No token");
+  if (!header) return res.status(403).send("No token");
 
-    const token = authHeader.split(" ")[1];
+  const token = header.split(" ")[1];
 
-    jwt.verify(token, SECRET, (err, user) => {
-        if (err) return res.status(403).send("Invalid token");
+  jwt.verify(token, SECRET, (err, user) => {
+    if (err) return res.status(403).send("Invalid token");
 
-        req.user = user;
-        next();
-    });
+    req.user = user;
+    next();
+  });
 }
 
 /* =========================
-   📌 SEND COMMAND (Flutter → Server)
-   Protected API
+   📌 COMMAND API
 ========================= */
-app.post("/api/send-command", authenticate, (req, res) => {
-    command = req.body.command;
+let command = "";
 
-    console.log("📌 COMMAND RECEIVED:", command);
-
-    res.send("OK");
+app.post("/api/send-command", auth, (req, res) => {
+  command = req.body.command;
+  console.log("CMD:", command);
+  res.send("OK");
 });
 
-/* =========================
-   🤖 EA COMMAND FETCH
-========================= */
 app.get("/api/command", (req, res) => {
-    const temp = command;
-
-    command = ""; // clear after read
-
-    res.send(temp || "");
+  const temp = command;
+  command = "";
+  res.send(temp || "");
 });
 
 /* =========================
-   📊 UPDATE DATA FROM EA
+   📊 DATA API
 ========================= */
+let latestData = {};
+
 app.post("/api/update", (req, res) => {
-    latestData = req.body;
-
-    console.log("📊 DATA RECEIVED");
-
-    res.send("OK");
+  latestData = req.body;
+  res.send("OK");
 });
 
-/* =========================
-   📈 GET DATA (Flutter)
-========================= */
 app.get("/api/data", (req, res) => {
-    res.json(latestData);
+  res.json(latestData);
 });
 
 /* =========================
    🚀 START SERVER
 ========================= */
 app.listen(3000, () => {
-    console.log("🚀 Server started on port 3000");
+  console.log("Server running on port 3000");
 });
