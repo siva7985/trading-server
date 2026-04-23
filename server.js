@@ -49,10 +49,13 @@ const Data = mongoose.model("Data", DataSchema);
    🔐 REGISTER (for testing)
 ========================= */
 app.post("/api/register", async (req, res) => {
-  const { username, password, mt5Account } = req.body; // ✅ FIXED
+  const { username, password, mt5Account } = req.body;
+
+  if (!mt5Account) {
+    return res.status(400).json({ error: "MT5 Account required" });
+  }
 
   const existing = await User.findOne({ username });
-
   if (existing) {
     return res.status(400).json({ error: "User already exists" });
   }
@@ -62,7 +65,7 @@ app.post("/api/register", async (req, res) => {
   await User.create({
     username,
     password: hashed,
-    mt5Account // ✅ now valid
+    mt5Account
   });
 
   res.json({ message: "User created" });
@@ -190,23 +193,25 @@ app.get("/", (req, res) => {
    📊 DATA API
 ========================= */
 
-app.post("/api/update", auth, async (req, res) => {
-  const userId = req.user.id; // ✅ from JWT
+app.post("/api/update", async (req, res) => {
   const { account, balance, equity, profit, trades } = req.body;
 
-  const user = await User.findById(userId);
+  const user = await User.findOne({ mt5Account: account });
 
   if (!user) {
-    return res.status(403).send("Invalid user");
-  }
-
-  if (user.mt5Account != account) {
-    return res.status(403).send("Account mismatch");
+    return res.status(403).send("Account not linked to any user");
   }
 
   await Data.findOneAndUpdate(
-    { userId },
-    { userId, account, balance, equity, profit, trades },
+    { account },
+    {
+      userId: user._id,
+      account,
+      balance,
+      equity,
+      profit,
+      trades
+    },
     { upsert: true }
   );
 
@@ -214,9 +219,9 @@ app.post("/api/update", auth, async (req, res) => {
 });
 
 app.get("/api/data", auth, async (req, res) => {
-  const userId = req.user.id;
+  const user = await User.findById(req.user.id);
 
-  const data = await Data.findOne({ userId });
+  const data = await Data.findOne({ account: user.mt5Account });
 
   res.json(data || {});
 });
