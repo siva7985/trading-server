@@ -151,6 +151,25 @@ app.post("/api/reset-password", async (req, res) => {
 });
 
 /* =========================
+   🔐 User update
+========================= */
+
+app.post("/api/update-account", auth, async (req, res) => {
+  const userId = req.user.id;
+  const { mt5Account } = req.body;
+
+  if (!mt5Account) {
+    return res.status(400).json({ error: "Account required" });
+  }
+
+  await User.findByIdAndUpdate(userId, {
+    mt5Account: mt5Account
+  });
+
+  res.json({ message: "Account updated successfully" });
+});
+
+/* =========================
    🔐 AUTH MIDDLEWARE
 ========================= */
 function auth(req, res, next) {
