@@ -249,6 +249,9 @@ app.get("/api/data", auth, async (req, res) => {
     profit: isValidAccount ? data?.profit : null,
     trades: isValidAccount ? data?.trades : []
   });
+  
+  console.log("USER:", user.mt5Account);
+  console.log("EA:", data?.account);
 });
 
 /* =========================
