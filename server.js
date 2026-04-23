@@ -199,19 +199,12 @@ app.post("/api/update", async (req, res) => {
   const user = await User.findOne({ mt5Account: account });
 
   if (!user) {
-    return res.status(403).send("Account not linked to any user");
+    return res.status(403).send("Account not linked");
   }
 
   await Data.findOneAndUpdate(
-    { account },
-    {
-      userId: user._id,
-      account,
-      balance,
-      equity,
-      profit,
-      trades
-    },
+    { userId: user._id },
+    { userId: user._id, account, balance, equity, profit, trades },
     { upsert: true }
   );
 
