@@ -237,7 +237,8 @@ app.get("/api/data", auth, async (req, res) => {
   const data = await Data.findOne({ userId });
 
   const isValidAccount =
-    data && user.mt5Account === data.account;
+    data &&
+    String(user.mt5Account).trim() === String(data.account).trim();
 
   res.json({
     username: user?.username,
