@@ -217,13 +217,17 @@ app.get("/api/data", auth, async (req, res) => {
   const user = await User.findById(userId);
   const data = await Data.findOne({ userId });
 
+  const isValidAccount =
+    data && user.mt5Account === data.account;
+
   res.json({
     username: user?.username,
     account: user?.mt5Account,
-    balance: data?.balance,
-    equity: data?.equity,
-    profit: data?.profit,
-    trades: data?.trades || []
+    accountValid: isValidAccount,
+    balance: isValidAccount ? data?.balance : null,
+    equity: isValidAccount ? data?.equity : null,
+    profit: isValidAccount ? data?.profit : null,
+    trades: isValidAccount ? data?.trades : []
   });
 });
 
