@@ -212,11 +212,19 @@ app.post("/api/update", async (req, res) => {
 });
 
 app.get("/api/data", auth, async (req, res) => {
-  const user = await User.findById(req.user.id);
+  const userId = req.user.id;
 
-  const data = await Data.findOne({ account: user.mt5Account });
+  const user = await User.findById(userId);
+  const data = await Data.findOne({ userId });
 
-  res.json(data || {});
+  res.json({
+    username: user?.username,
+    account: user?.mt5Account,
+    balance: data?.balance,
+    equity: data?.equity,
+    profit: data?.profit,
+    trades: data?.trades || []
+  });
 });
 
 /* =========================
