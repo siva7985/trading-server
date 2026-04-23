@@ -22,7 +22,9 @@ mongoose.connect("mongodb+srv://admin:Nsrk798489@tradingapp.t6uqbxa.mongodb.net/
 ========================= */
 const UserSchema = new mongoose.Schema({
   username: { type: String, unique: true },
-  password: String
+  password: String,
+  otp: String,
+  otpExpiry: Date
 });
 
 const User = mongoose.model("User", UserSchema);
@@ -72,6 +74,60 @@ app.post("/api/login", async (req, res) => {
   });
 
   res.json({ token });
+});
+
+/* =========================
+   🔐 Forget Password
+========================= */
+
+app.post("/api/forgot-password", async (req, res) => {
+  const { username } = req.body;
+
+  const user = await User.findOne({ username });
+
+  if (!user) {
+    return res.status(404).json({ error: "User not found" });
+  }
+
+  // Generate 6 digit OTP
+  const otp = Math.floor(100000 + Math.random() * 900000).toString();
+
+  user.otp = otp;
+  user.otpExpiry = Date.now() + 5 * 60 * 1000; // 5 mins
+
+  await user.save();
+
+  console.log("OTP:", otp); // 🔥 for testing (later send email)
+
+  res.json({ message: "OTP sent" });
+});
+
+/* =========================
+   🔐 Reset Password
+========================= */
+
+app.post("/api/reset-password", async (req, res) => {
+  const { username, otp, newPassword } = req.body;
+
+  const user = await User.findOne({ username });
+
+  if (!user) {
+    return res.status(404).json({ error: "User not found" });
+  }
+
+  if (user.otp !== otp || Date.now() > user.otpExpiry) {
+    return res.status(400).json({ error: "Invalid or expired OTP" });
+  }
+
+  const hashed = await bcrypt.hash(newPassword, 10);
+
+  user.password = hashed;
+  user.otp = null;
+  user.otpExpiry = null;
+
+  await user.save();
+
+  res.json({ message: "Password reset successful" });
 });
 
 /* =========================
