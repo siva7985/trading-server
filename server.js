@@ -23,6 +23,7 @@ mongoose.connect("mongodb+srv://admin:Nsrk798489@tradingapp.t6uqbxa.mongodb.net/
 const UserSchema = new mongoose.Schema({
   username: { type: String, unique: true },
   password: String,
+  mt5Account: String,
   otp: String,
   otpExpiry: Date
 });
@@ -35,6 +36,7 @@ const User = mongoose.model("User", UserSchema);
 
 const DataSchema = new mongoose.Schema({
   userId: String,
+  account: String,
   balance: Number,
   equity: Number,
   profit: Number,
@@ -59,7 +61,8 @@ app.post("/api/register", async (req, res) => {
 
   await User.create({
     username,
-    password: hashed
+    password: hashed,
+    mt5Account   // 👈 SAVE ACCOUNT NUMBER
   });
 
   res.json({ message: "User created" });
@@ -185,11 +188,24 @@ app.get("/api/command", (req, res) => {
 let latestData = {};
 
 app.post("/api/update", async (req, res) => {
-  const { userId, balance, equity, profit, trades } = req.body;
+  const { userId, account, balance, equity, profit, trades } = req.body;
 
+  const user = await User.findById(userId);
+
+  // ❌ INVALID USER
+  if (!user) {
+    return res.status(403).send("Invalid user");
+  }
+
+  // ❌ ACCOUNT MISMATCH
+  if (user.mt5Account != account) {
+    return res.status(403).send("Account mismatch");
+  }
+
+  // ✅ SAVE ONLY VALID DATA
   await Data.findOneAndUpdate(
     { userId },
-    { balance, equity, profit, trades },
+    { userId, account, balance, equity, profit, trades },
     { upsert: true }
   );
 
