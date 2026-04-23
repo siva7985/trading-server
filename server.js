@@ -30,6 +30,20 @@ const UserSchema = new mongoose.Schema({
 const User = mongoose.model("User", UserSchema);
 
 /* =========================
+   📦 DATA MODEL
+========================= */
+
+const DataSchema = new mongoose.Schema({
+  userId: String,
+  balance: Number,
+  equity: Number,
+  profit: Number,
+  trades: Array
+});
+
+const Data = mongoose.model("Data", DataSchema);
+
+/* =========================
    🔐 REGISTER (for testing)
 ========================= */
 app.post("/api/register", async (req, res) => {
@@ -170,13 +184,24 @@ app.get("/api/command", (req, res) => {
 ========================= */
 let latestData = {};
 
-app.post("/api/update", (req, res) => {
-  latestData = req.body;
+app.post("/api/update", async (req, res) => {
+  const { userId, balance, equity, profit, trades } = req.body;
+
+  await Data.findOneAndUpdate(
+    { userId },
+    { balance, equity, profit, trades },
+    { upsert: true }
+  );
+
   res.send("OK");
 });
 
-app.get("/api/data", (req, res) => {
-  res.json(latestData);
+app.get("/api/data", auth, async (req, res) => {
+  const userId = req.user.id;
+
+  const data = await Data.findOne({ userId });
+
+  res.json(data || {});
 });
 
 /* =========================
