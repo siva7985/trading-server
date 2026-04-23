@@ -190,22 +190,20 @@ app.get("/", (req, res) => {
    📊 DATA API
 ========================= */
 
-app.post("/api/update", async (req, res) => {
-  const { userId, account, balance, equity, profit, trades } = req.body;
+app.post("/api/update", auth, async (req, res) => {
+  const userId = req.user.id; // ✅ from JWT
+  const { account, balance, equity, profit, trades } = req.body;
 
   const user = await User.findById(userId);
 
-  // ❌ INVALID USER
   if (!user) {
     return res.status(403).send("Invalid user");
   }
 
-  // ❌ ACCOUNT MISMATCH
   if (user.mt5Account != account) {
     return res.status(403).send("Account mismatch");
   }
 
-  // ✅ SAVE ONLY VALID DATA
   await Data.findOneAndUpdate(
     { userId },
     { userId, account, balance, equity, profit, trades },
