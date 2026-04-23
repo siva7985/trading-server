@@ -165,7 +165,7 @@ app.post("/api/update-account", auth, async (req, res) => {
   await User.findByIdAndUpdate(userId, {
     mt5Account: mt5Account
   });
-
+  
   res.json({ message: "Account updated successfully" });
 });
 
@@ -217,15 +217,17 @@ app.post("/api/update", async (req, res) => {
 
   const user = await User.findOne({ mt5Account: account });
 
-  if (!user) {
-    return res.status(403).send("Account not linked");
-  }
+	if (!user) {
+	  return res.status(403).send("Account not linked to any user");
+	}
 
   await Data.findOneAndUpdate(
     { userId: user._id },
     { userId: user._id, account, balance, equity, profit, trades },
     { upsert: true }
   );
+  
+  console.log("UPDATE BODY:", req.body);
 
   res.send("OK");
 });
