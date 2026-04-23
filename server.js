@@ -21,7 +21,7 @@ mongoose.connect("mongodb+srv://admin:Nsrk798489@tradingapp.t6uqbxa.mongodb.net/
    📦 USER MODEL
 ========================= */
 const UserSchema = new mongoose.Schema({
-  username: String,
+  username: { type: String, unique: true },
   password: String
 });
 
@@ -32,6 +32,12 @@ const User = mongoose.model("User", UserSchema);
 ========================= */
 app.post("/api/register", async (req, res) => {
   const { username, password } = req.body;
+
+  const existing = await User.findOne({ username });
+
+  if (existing) {
+    return res.status(400).json({ error: "User already exists" });
+  }
 
   const hashed = await bcrypt.hash(password, 10);
 
