@@ -49,7 +49,7 @@ const Data = mongoose.model("Data", DataSchema);
    🔐 REGISTER (for testing)
 ========================= */
 app.post("/api/register", async (req, res) => {
-  const { username, password } = req.body;
+  const { username, password, mt5Account } = req.body; // ✅ FIXED
 
   const existing = await User.findOne({ username });
 
@@ -62,7 +62,7 @@ app.post("/api/register", async (req, res) => {
   await User.create({
     username,
     password: hashed,
-    mt5Account   // 👈 SAVE ACCOUNT NUMBER
+    mt5Account // ✅ now valid
   });
 
   res.json({ message: "User created" });
@@ -182,10 +182,13 @@ app.get("/api/command", (req, res) => {
   res.send(temp || "");
 });
 
+app.get("/", (req, res) => {
+  res.send("Server is running ✅");
+});
+
 /* =========================
    📊 DATA API
 ========================= */
-let latestData = {};
 
 app.post("/api/update", async (req, res) => {
   const { userId, account, balance, equity, profit, trades } = req.body;
@@ -223,6 +226,8 @@ app.get("/api/data", auth, async (req, res) => {
 /* =========================
    🚀 START SERVER
 ========================= */
-app.listen(3000, () => {
-  console.log("Server running on port 3000");
+const PORT = process.env.PORT || 3000;
+
+app.listen(PORT, () => {
+  console.log("Server running on port", PORT);
 });
