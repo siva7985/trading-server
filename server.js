@@ -23,7 +23,10 @@ mongoose.connect("mongodb+srv://admin:Nsrk798489@tradingapp.t6uqbxa.mongodb.net/
 const UserSchema = new mongoose.Schema({
   username: { type: String, unique: true },
   password: String,
-  mt5Account: String,
+  mt5Account: {
+    type: String,
+    unique: true   // 🔥 ADD THIS
+  },
   otp: String,
   otpExpiry: Date
 });
@@ -63,6 +66,12 @@ app.post("/api/register", async (req, res) => {
   if (existing) {
     return res.status(400).json({ error: "User already exists" });
   }
+  
+  const existingAccount = await User.findOne({ mt5Account });
+
+	if (existingAccount) {
+	  return res.status(400).json({ error: "Account already linked to another user" });
+	}
 
   const hashed = await bcrypt.hash(password, 10);
 
