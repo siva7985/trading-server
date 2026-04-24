@@ -269,17 +269,18 @@ app.get("/api/data", auth, async (req, res) => {
 /* =========================
    📌 COMMAND API
 ========================= */
-let commandQueue = [];
+let lastCommand = {};
 
 app.post("/api/send-command", auth, (req, res) => {
   const { command, account } = req.body;
 
-  commandQueue.push({
+  lastCommand[account] = {
     command,
-    account
-  });
+    account,
+    time: Date.now()
+  };
 
-  console.log("QUEUED:", command, account);
+  console.log("QUEUED:", lastCommand[account]);
 
   res.json({ success: true });
 });
@@ -287,19 +288,18 @@ app.post("/api/send-command", auth, (req, res) => {
 app.get("/api/command", (req, res) => {
   const account = req.query.account;
 
-  const index = commandQueue.findIndex(c => c.account === account);
-
-  if (index === -1) {
+  if (!account) {
     return res.json({ command: "" });
   }
 
-  const cmd = commandQueue[index];
+  const cmd = lastCommand[account];
 
-  commandQueue.splice(index, 1);
+  if (!cmd) {
+    return res.json({ command: "" });
+  }
 
-  console.log("SENT TO EA:", cmd);
-
-  res.json(cmd);
+  // DO NOT DELETE immediately (important fix)
+  return res.json(cmd);
 });
 
 /* =========================
