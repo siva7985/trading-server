@@ -35,7 +35,7 @@ const User = mongoose.model("User", UserSchema);
 ========================= */
 
 const DataSchema = new mongoose.Schema({
-  userId: String,
+  userId: mongoose.Schema.Types.ObjectId,
   account: String,
   balance: Number,
   equity: Number,
