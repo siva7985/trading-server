@@ -259,6 +259,11 @@ app.get("/api/data", auth, async (req, res) => {
   console.log("EA:", data?.account);
 });
 
+app.get("/debug-data", async (req, res) => {
+  const all = await Data.find();
+  res.json(all);
+});
+
 /* =========================
    🚀 START SERVER
 ========================= */
