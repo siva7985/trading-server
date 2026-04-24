@@ -274,17 +274,12 @@ let commandQueue = [];
 app.post("/api/send-command", auth, (req, res) => {
   const { command, account } = req.body;
 
-  if (!command || !account) {
-    return res.status(400).json({ error: "Missing command/account" });
-  }
-
   commandQueue.push({
     command,
-    account,
-    time: Date.now()
+    account
   });
 
-  console.log("✅ QUEUED:", command, account);
+  console.log("QUEUED:", command, account);
 
   res.json({ success: true });
 });
@@ -292,13 +287,7 @@ app.post("/api/send-command", auth, (req, res) => {
 app.get("/api/command", (req, res) => {
   const account = req.query.account;
 
-  if (!account) {
-    return res.json({ command: "" });
-  }
-
-  const index = commandQueue.findIndex(
-    c => c.account === account
-  );
+  const index = commandQueue.findIndex(c => c.account === account);
 
   if (index === -1) {
     return res.json({ command: "" });
@@ -306,10 +295,11 @@ app.get("/api/command", (req, res) => {
 
   const cmd = commandQueue[index];
 
-  // remove after sending (one-time execution)
   commandQueue.splice(index, 1);
 
-  return res.json(cmd);
+  console.log("SENT TO EA:", cmd);
+
+  res.json(cmd);
 });
 
 /* =========================
