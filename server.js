@@ -273,7 +273,11 @@ let lastCommand = {};
 
 app.post("/api/send-command", auth, (req, res) => {
   const { command, account } = req.body;
-
+  
+  if (!account || !command) {
+    return res.status(400).json({ error: "Missing data" });
+  }
+  
   lastCommand[account] = {
     command,
     account,
