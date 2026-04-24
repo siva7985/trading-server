@@ -259,15 +259,9 @@ app.get("/api/data", auth, async (req, res) => {
   console.log("EA:", data?.account);
 });
 
-app.get("/cleanup", async (req, res) => {
-  const result = await Data.deleteMany({
-    $or: [
-      { userId: { $exists: false } },
-      { account: { $exists: false } }
-    ]
-  });
-
-  res.json({ deleted: result.deletedCount });
+app.get("/debug-data", async (req, res) => {
+  const all = await Data.find();
+  res.json(all);
 });
 
 /* =========================
