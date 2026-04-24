@@ -35,7 +35,11 @@ const User = mongoose.model("User", UserSchema);
 ========================= */
 
 const DataSchema = new mongoose.Schema({
-  userId: mongoose.Schema.Types.ObjectId,
+  userId: {
+    type: mongoose.Schema.Types.ObjectId,
+    required: true,
+    unique: true   // 🔥 THIS FIXES EVERYTHING
+  },
   account: String,
   balance: Number,
   equity: Number,
@@ -222,10 +226,17 @@ app.post("/api/update", async (req, res) => {
 	}
 
   await Data.findOneAndUpdate(
-    { userId: user._id },
-    { userId: user._id, account, balance, equity, profit, trades },
-    { upsert: true }
-  );
+	  { userId: user._id },   // 🔥 IMPORTANT (match by user)
+	  {
+		userId: user._id,
+		account,
+		balance,
+		equity,
+		profit,
+		trades
+	  },
+	  { upsert: true, new: true }
+	);
   
   //console.log("UPDATE BODY:", req.body);
 
@@ -236,7 +247,10 @@ app.get("/api/data", auth, async (req, res) => {
   const userId = req.user.id;
 
   const user = await User.findById(userId);
-  const data = await Data.findOne({ userId });
+  const data = await Data.findOne({
+	  userId,
+	  account: user.mt5Account
+	});
 
   const isValidAccount =
     data &&
