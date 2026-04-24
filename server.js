@@ -34,16 +34,22 @@ const User = mongoose.model("User", UserSchema);
    📦 DATA MODEL (FIXED)
 ========================= */
 const DataSchema = new mongoose.Schema({
+  userId: {
+    type: mongoose.Schema.Types.ObjectId,
+    required: true
+  },
   account: {
     type: String,
-    required: true,
-    unique: true   // ✅ ONE ACCOUNT = ONE DATA
+    required: true
   },
   balance: Number,
   equity: Number,
   profit: Number,
   trades: Array
 });
+
+// 🔥 IMPORTANT (multi-account per user)
+DataSchema.index({ userId: 1, account: 1 }, { unique: true });
 
 const Data = mongoose.model("Data", DataSchema);
 
@@ -215,16 +221,17 @@ app.post("/api/update", async (req, res) => {
   }
 
   await Data.findOneAndUpdate(
-    { account },
-    {
-      account,
-      balance,
-      equity,
-      profit,
-      trades
-    },
-    { upsert: true, new: true }
-  );
+  { userId: user._id, account },  // 🔥 THIS IS KEY
+  {
+    userId: user._id,
+    account,
+    balance,
+    equity,
+    profit,
+    trades
+  },
+  { upsert: true, new: true }
+);
 
   res.send("OK");
 });
