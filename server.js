@@ -227,7 +227,7 @@ app.post("/api/update", async (req, res) => {
     { upsert: true }
   );
   
-  console.log("UPDATE BODY:", req.body);
+  //console.log("UPDATE BODY:", req.body);
 
   res.send("OK");
 });
