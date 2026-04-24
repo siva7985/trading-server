@@ -255,20 +255,19 @@ app.get("/api/data", auth, async (req, res) => {
     trades: isValidAccount ? data?.trades : []
   });
   
-  await Data.deleteMany({
-	  $or: [
-		{ userId: { $exists: false } },
-		{ account: { $exists: false } }
-	  ]
-	});
-  
   console.log("USER:", user.mt5Account);
   console.log("EA:", data?.account);
 });
 
-app.get("/debug-data", async (req, res) => {
-  const all = await Data.find();
-  res.json(all);
+app.get("/cleanup", async (req, res) => {
+  const result = await Data.deleteMany({
+    $or: [
+      { userId: { $exists: false } },
+      { account: { $exists: false } }
+    ]
+  });
+
+  res.json({ deleted: result.deletedCount });
 });
 
 /* =========================
