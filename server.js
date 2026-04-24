@@ -301,7 +301,9 @@ app.get("/api/command", (req, res) => {
   if (!cmd) {
     return res.json({ command: "" });
   }
-
+  
+  delete lastCommand[account];
+  
   // DO NOT DELETE immediately (important fix)
   return res.json(cmd);
 });
