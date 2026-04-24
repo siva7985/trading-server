@@ -273,16 +273,23 @@ app.get("/api/data", auth, async (req, res) => {
   console.log("EA:", data?.account);
 });
 
-const all = await Data.find({ userId: "69e9dfc99d1f8c68dc86222e" }).sort({ _id: -1 });
+async function cleanOldData() {
+  const all = await Data.find({ userId: "69e9dfc99d1f8c68dc86222e" }).sort({ _id: -1 });
 
-// keep latest
-const latest = all[0];
+  if (all.length > 1) {
+    const latest = all[0];
 
-// delete others
-await Data.deleteMany({
-  userId: "69e9dfc99d1f8c68dc86222e",
-  _id: { $ne: latest._id }
-});
+    await Data.deleteMany({
+      userId: "69e9dfc99d1f8c68dc86222e",
+      _id: { $ne: latest._id }
+    });
+
+    console.log("Old data cleaned");
+  }
+}
+
+// call it once
+cleanOldData();
 
 app.get("/debug-data", async (req, res) => {
   const all = await Data.find();
