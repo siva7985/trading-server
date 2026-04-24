@@ -245,6 +245,9 @@ app.get("/api/data", auth, async (req, res) => {
   res.json({
     username: user?.username,
     account: user?.mt5Account,
+	
+	dataReceived: !!data,
+	
     accountValid: isValidAccount,
     balance: isValidAccount ? data?.balance : null,
     equity: isValidAccount ? data?.equity : null,
