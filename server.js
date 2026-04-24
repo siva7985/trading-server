@@ -23,10 +23,7 @@ mongoose.connect("mongodb+srv://admin:Nsrk798489@tradingapp.t6uqbxa.mongodb.net/
 const UserSchema = new mongoose.Schema({
   username: { type: String, unique: true },
   password: String,
-  mt5Account: {
-    type: String,
-    unique: true   // 🔥 ADD THIS
-  },
+  accounts: [String],   // ✅ MULTIPLE ACCOUNTS
   otp: String,
   otpExpiry: Date
 });
@@ -34,16 +31,14 @@ const UserSchema = new mongoose.Schema({
 const User = mongoose.model("User", UserSchema);
 
 /* =========================
-   📦 DATA MODEL
+   📦 DATA MODEL (FIXED)
 ========================= */
-
 const DataSchema = new mongoose.Schema({
-  userId: {
-    type: mongoose.Schema.Types.ObjectId,
+  account: {
+    type: String,
     required: true,
-    unique: true   // 🔥 THIS FIXES EVERYTHING
+    unique: true   // ✅ ONE ACCOUNT = ONE DATA
   },
-  account: String,
   balance: Number,
   equity: Number,
   profit: Number,
@@ -53,32 +48,40 @@ const DataSchema = new mongoose.Schema({
 const Data = mongoose.model("Data", DataSchema);
 
 /* =========================
-   🔐 REGISTER (for testing)
+   🔐 AUTH MIDDLEWARE
+========================= */
+function auth(req, res, next) {
+  const header = req.headers.authorization;
+
+  if (!header) return res.status(403).send("No token");
+
+  const token = header.split(" ")[1];
+
+  jwt.verify(token, SECRET, (err, user) => {
+    if (err) return res.status(403).send("Invalid token");
+
+    req.user = user;
+    next();
+  });
+}
+
+/* =========================
+   🔐 REGISTER
 ========================= */
 app.post("/api/register", async (req, res) => {
-  const { username, password, mt5Account } = req.body;
-
-  if (!mt5Account) {
-    return res.status(400).json({ error: "MT5 Account required" });
-  }
+  const { username, password } = req.body;
 
   const existing = await User.findOne({ username });
   if (existing) {
     return res.status(400).json({ error: "User already exists" });
   }
-  
-  const existingAccount = await User.findOne({ mt5Account });
-
-	if (existingAccount) {
-	  return res.status(400).json({ error: "Account already linked to another user" });
-	}
 
   const hashed = await bcrypt.hash(password, 10);
 
   await User.create({
     username,
     password: hashed,
-    mt5Account
+    accounts: []
   });
 
   res.json({ message: "User created" });
@@ -110,9 +113,37 @@ app.post("/api/login", async (req, res) => {
 });
 
 /* =========================
-   🔐 Forget Password
+   ➕ ADD ACCOUNT
 ========================= */
+app.post("/api/add-account", auth, async (req, res) => {
+  const userId = req.user.id;
+  const { account } = req.body;
 
+  if (!account) {
+    return res.status(400).json({ error: "Account required" });
+  }
+
+  const user = await User.findById(userId);
+
+  if (user.accounts.includes(account)) {
+    return res.status(400).json({ error: "Already added" });
+  }
+
+  // ❗ Prevent same account in multiple users
+  const existing = await User.findOne({ accounts: account });
+  if (existing) {
+    return res.status(400).json({ error: "Account already used by another user" });
+  }
+
+  user.accounts.push(account);
+  await user.save();
+
+  res.json({ message: "Account added successfully" });
+});
+
+/* =========================
+   🔐 FORGOT PASSWORD
+========================= */
 app.post("/api/forgot-password", async (req, res) => {
   const { username } = req.body;
 
@@ -122,23 +153,21 @@ app.post("/api/forgot-password", async (req, res) => {
     return res.status(404).json({ error: "User not found" });
   }
 
-  // Generate 6 digit OTP
   const otp = Math.floor(100000 + Math.random() * 900000).toString();
 
   user.otp = otp;
-  user.otpExpiry = Date.now() + 5 * 60 * 1000; // 5 mins
+  user.otpExpiry = Date.now() + 5 * 60 * 1000;
 
   await user.save();
 
-  console.log("OTP:", otp); // 🔥 for testing (later send email)
+  console.log("OTP:", otp);
 
   res.json({ message: "OTP sent" });
 });
 
 /* =========================
-   🔐 Reset Password
+   🔐 RESET PASSWORD
 ========================= */
-
 app.post("/api/reset-password", async (req, res) => {
   const { username, otp, newPassword } = req.body;
 
@@ -164,47 +193,61 @@ app.post("/api/reset-password", async (req, res) => {
 });
 
 /* =========================
-   🔐 User update
+   📊 EA DATA UPDATE
 ========================= */
+app.post("/api/update", async (req, res) => {
+  const { account, balance, equity, profit, trades } = req.body;
 
-app.post("/api/update-account", auth, async (req, res) => {
-  const userId = req.user.id;
-  const { mt5Account } = req.body;
+  const user = await User.findOne({ accounts: account });
 
-  if (!mt5Account) {
-    return res.status(400).json({ error: "Account required" });
+  if (!user) {
+    return res.status(403).send("Account not linked");
   }
-  
-  const existingAccount = await User.findOne({ mt5Account });
 
-	if (existingAccount) {
-	  return res.status(400).json({ error: "Account already linked to another user" });
-	}
+  await Data.findOneAndUpdate(
+    { account },
+    {
+      account,
+      balance,
+      equity,
+      profit,
+      trades
+    },
+    { upsert: true, new: true }
+  );
 
-  await User.findByIdAndUpdate(userId, {
-    mt5Account: mt5Account
-  });
-  
-  res.json({ message: "Account updated successfully" });
+  res.send("OK");
 });
 
 /* =========================
-   🔐 AUTH MIDDLEWARE
+   📊 FETCH USER DATA
 ========================= */
-function auth(req, res, next) {
-  const header = req.headers.authorization;
+app.get("/api/data", auth, async (req, res) => {
+  const userId = req.user.id;
 
-  if (!header) return res.status(403).send("No token");
+  const user = await User.findById(userId);
 
-  const token = header.split(" ")[1];
-
-  jwt.verify(token, SECRET, (err, user) => {
-    if (err) return res.status(403).send("Invalid token");
-
-    req.user = user;
-    next();
+  const data = await Data.find({
+    account: { $in: user.accounts }
   });
-}
+
+  const result = user.accounts.map(acc => {
+    const d = data.find(x => x.account === acc);
+
+    return {
+      account: acc,
+      balance: d?.balance || null,
+      equity: d?.equity || null,
+      profit: d?.profit || null,
+      trades: d?.trades || []
+    };
+  });
+
+  res.json({
+    username: user.username,
+    accounts: result
+  });
+});
 
 /* =========================
    📌 COMMAND API
@@ -223,74 +266,11 @@ app.get("/api/command", (req, res) => {
   res.send(temp || "");
 });
 
-app.get("/", (req, res) => {
-  res.send("Server is running ✅");
-});
-
 /* =========================
-   📊 DATA API
+   ROOT
 ========================= */
-
-app.post("/api/update", async (req, res) => {
-  const { account, balance, equity, profit, trades } = req.body;
-
-  const user = await User.findOne({ mt5Account: account });
-
-	if (!user) {
-	  return res.status(403).send("Account not linked to any user");
-	}
-
-  await Data.findOneAndUpdate(
-	  { userId: user._id },   // 🔥 IMPORTANT (match by user)
-	  {
-		userId: user._id,
-		account,
-		balance,
-		equity,
-		profit,
-		trades
-	  },
-	  { upsert: true, new: true }
-	);
-  
-  //console.log("UPDATE BODY:", req.body);
-
-  res.send("OK");
-});
-
-app.get("/api/data", auth, async (req, res) => {
-  const userId = req.user.id;
-
-  const user = await User.findById(userId);
-  const data = await Data.findOne({
-	  userId,
-	  account: user.mt5Account
-	});
-
-  const isValidAccount =
-    data &&
-    String(user.mt5Account).trim() === String(data.account).trim();
-
-  res.json({
-    username: user?.username,
-    account: user?.mt5Account,
-	
-	dataReceived: !!data,
-	
-    accountValid: isValidAccount,
-    balance: isValidAccount ? data?.balance : null,
-    equity: isValidAccount ? data?.equity : null,
-    profit: isValidAccount ? data?.profit : null,
-    trades: isValidAccount ? data?.trades : []
-  });
-  
-  console.log("USER:", user.mt5Account);
-  console.log("EA:", data?.account);
-});
-
-app.get("/debug-data", async (req, res) => {
-  const all = await Data.find();
-  res.json(all);
+app.get("/", (req, res) => {
+  res.send("Server running ✅");
 });
 
 /* =========================
