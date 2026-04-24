@@ -269,19 +269,27 @@ app.get("/api/data", auth, async (req, res) => {
 /* =========================
    📌 COMMAND API
 ========================= */
-let commands = {}; // user-wise
+let commandQueue = [];
 
 app.post("/api/send-command", auth, (req, res) => {
-  const userId = req.user.id;
-  const { account, command } = req.body;
+  const { command, account } = req.body;
 
-  if (!commands[userId]) commands[userId] = {};
+  if (!command || !account) {
+    return res.status(400).send("Missing command or account");
+  }
 
-  commands[userId][account] = command;
+  const payload = {
+    command,
+    account,
+    userId: req.user.id,
+    time: new Date()
+  };
 
-  io.to(userId).emit("command", { account, command });
+  commandQueue.push(payload);
 
-  res.send("OK");
+  console.log("CMD RECEIVED:", payload);
+
+  res.json({ status: "OK", payload });
 });
 
 app.get("/api/command", (req, res) => {
