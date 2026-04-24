@@ -272,24 +272,24 @@ app.get("/api/data", auth, async (req, res) => {
 let commandQueue = [];
 
 app.post("/api/send-command", auth, (req, res) => {
+  console.log("🔥 HEADERS:", req.headers);
+  console.log("🔥 BODY:", req.body);
+
   const { command, account } = req.body;
 
   if (!command || !account) {
-    return res.status(400).send("Missing command or account");
+    console.log("❌ Missing data");
+    return res.status(400).json({ error: "Missing command/account" });
   }
 
-  const payload = {
+  console.log("✅ COMMAND RECEIVED:", command);
+  console.log("✅ ACCOUNT RECEIVED:", account);
+
+  return res.json({
+    success: true,
     command,
-    account,
-    userId: req.user.id,
-    time: new Date()
-  };
-
-  commandQueue.push(payload);
-
-  console.log("CMD RECEIVED:", payload);
-
-  res.json({ status: "OK", payload });
+    account
+  });
 });
 
 app.get("/api/command", (req, res) => {
