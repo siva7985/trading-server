@@ -269,11 +269,18 @@ app.get("/api/data", auth, async (req, res) => {
 /* =========================
    📌 COMMAND API
 ========================= */
-let command = "";
+let commands = {}; // user-wise
 
 app.post("/api/send-command", auth, (req, res) => {
-  command = req.body.command;
-  console.log("CMD:", command);
+  const userId = req.user.id;
+  const { account, command } = req.body;
+
+  if (!commands[userId]) commands[userId] = {};
+
+  commands[userId][account] = command;
+
+  io.to(userId).emit("command", { account, command });
+
   res.send("OK");
 });
 
