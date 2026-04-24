@@ -174,6 +174,12 @@ app.post("/api/update-account", auth, async (req, res) => {
   if (!mt5Account) {
     return res.status(400).json({ error: "Account required" });
   }
+  
+  const existingAccount = await User.findOne({ mt5Account });
+
+	if (existingAccount) {
+	  return res.status(400).json({ error: "Account already linked to another user" });
+	}
 
   await User.findByIdAndUpdate(userId, {
     mt5Account: mt5Account
