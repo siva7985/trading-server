@@ -371,6 +371,7 @@ app.post("/api/send-command", auth, (req, res) => {
     command,
     account,
     time: Date.now()
+	executed: false
   };
 
   console.log("QUEUED:", lastCommand[account]);
@@ -387,13 +388,10 @@ app.get("/api/command", (req, res) => {
 
   const cmd = lastCommand[account];
 
-  if (!cmd) {
+  if (!cmd || cmd.executed) {
     return res.json({ command: "" });
   }
-  
-  delete lastCommand[account];
-  
-  // DO NOT DELETE immediately (important fix)
+
   return res.json(cmd);
 });
 
