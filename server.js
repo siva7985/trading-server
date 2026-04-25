@@ -138,6 +138,13 @@ app.post("/api/add-account", auth, async (req, res) => {
   if (!account) {
     return res.status(400).json({ error: "Account required" });
   }
+  
+  // ✅ VALIDATION
+  if (!isValidAccount(account)) {
+    return res.status(400).json({
+      error: "Account must be exactly 9 digits (numbers only)"
+    });
+  }
 
   const user = await User.findById(userId);
 
@@ -248,6 +255,12 @@ app.post("/api/update-account", auth, async (req, res) => {
     if (!oldAccount || !newAccount) {
       return res.status(400).json({ error: "Missing fields" });
     }
+	
+	if (!isValidAccount(newAccount)) {
+	  return res.status(400).json({
+		error: "Account must be exactly 9 digits (numbers only)"
+	  });
+	}
 
     const user = await User.findById(userId);
 
@@ -383,6 +396,10 @@ app.get("/api/command", (req, res) => {
   // DO NOT DELETE immediately (important fix)
   return res.json(cmd);
 });
+
+function isValidAccount(account) {
+  return /^[0-9]{9}$/.test(account); // ✅ exactly 9 digits only
+}
 
 /* =========================
    ROOT
