@@ -361,17 +361,18 @@ app.get("/api/data", auth, async (req, res) => {
 let lastCommand = {};
 
 app.post("/api/send-command", auth, (req, res) => {
-  const { command, account } = req.body;
-  
+  const { command, account, ticket } = req.body;
+
   if (!account || !command) {
     return res.status(400).json({ error: "Missing data" });
   }
-  
+
   lastCommand[account] = {
     command,
     account,
-    time: Date.now()
-	executed: false
+    ticket: ticket || null, // 🔥 NEW
+    time: Date.now(),
+    executed: false
   };
 
   console.log("QUEUED:", lastCommand[account]);
