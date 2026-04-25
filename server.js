@@ -237,6 +237,82 @@ app.post("/api/update", async (req, res) => {
 });
 
 /* =========================
+   📊 update-account
+========================= */
+
+app.post("/api/update-account", auth, async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { oldAccount, newAccount } = req.body;
+
+    if (!oldAccount || !newAccount) {
+      return res.status(400).json({ error: "Missing fields" });
+    }
+
+    const user = await User.findById(userId);
+
+    if (!user.accounts.includes(oldAccount)) {
+      return res.status(400).json({ error: "Old account not found" });
+    }
+
+    // ❌ Prevent duplicate across users
+    const existing = await User.findOne({ accounts: newAccount });
+    if (existing) {
+      return res.status(400).json({ error: "Account already used" });
+    }
+
+    // ✅ Replace account
+    user.accounts = user.accounts.map(acc =>
+      acc === oldAccount ? newAccount : acc
+    );
+
+    await user.save();
+
+    // ✅ Also update Data collection
+    await Data.updateMany(
+      { account: oldAccount },
+      { account: newAccount }
+    );
+
+    res.json({ message: "Account updated successfully" });
+
+  } catch (err) {
+    console.log("UPDATE ERROR:", err);
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
+/* =========================
+   📊 Delete-account
+========================= */
+
+app.post("/api/delete-account", auth, async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { account } = req.body;
+
+    const user = await User.findById(userId);
+
+    if (!user.accounts.includes(account)) {
+      return res.status(400).json({ error: "Account not found" });
+    }
+
+    // ✅ Remove from user only
+    user.accounts = user.accounts.filter(acc => acc !== account);
+    await user.save();
+
+    // ✅ Optional: remove its data (recommended)
+    await Data.deleteOne({ account });
+
+    res.json({ message: "Account removed" });
+
+  } catch (err) {
+    console.log("DELETE ERROR:", err);
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
+/* =========================
    📊 FETCH USER DATA
 ========================= */
 app.get("/api/data", auth, async (req, res) => {
