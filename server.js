@@ -21,9 +21,19 @@ mongoose.connect("mongodb+srv://admin:Nsrk798489@tradingapp.t6uqbxa.mongodb.net/
    📦 USER MODEL
 ========================= */
 const UserSchema = new mongoose.Schema({
+  // ✅ NEW FIELDS (optional for old users)
+  fullName: String,
+  gender: String,
+  email: { type: String, unique: true, sparse: true },
+  phone: String,
+  country: String,
+
+  // ✅ EXISTING
   username: { type: String, unique: true },
   password: String,
-  accounts: [String],   // ✅ MULTIPLE ACCOUNTS
+  accounts: [String],
+
+  // ✅ OTP (already you have)
   otp: String,
   otpExpiry: Date
 });
@@ -76,33 +86,59 @@ function auth(req, res, next) {
 ========================= */
 app.post("/api/register", async (req, res) => {
   try {
-    const { username, password } = req.body;
+    const {
+      fullName,
+      gender,
+      email,
+      phone,
+      country,
+      username,
+      password
+    } = req.body;
 
+    // ✅ BASIC VALIDATION
     if (!username || !password) {
-      return res.status(400).json({ error: "Missing fields" });
+      return res.status(400).json({ error: "Username & Password required ❌" });
+    }
+	
+	if (!fullName || !email || !phone) {
+	  return res.status(400).json({ error: "All details required ❌" });
+	}
+	
+    // ✅ CHECK USERNAME
+    const existingUser = await User.findOne({ username });
+    if (existingUser) {
+      return res.status(400).json({ error: "Username already exists ❌" });
     }
 
-    const existing = await User.findOne({ username });
-    if (existing) {
-      return res.status(400).json({ error: "User already exists" });
+    // ✅ CHECK EMAIL (only if provided)
+    if (email) {
+      const existingEmail = await User.findOne({ email });
+      if (existingEmail) {
+        return res.status(400).json({ error: "Email already registered ❌" });
+      }
     }
 
     const hashed = await bcrypt.hash(password, 10);
 
     await User.create({
+      fullName,
+      gender,
+      email,
+      phone,
+      country,
       username,
       password: hashed,
-      accounts: []   // ✅ correct
+      accounts: []
     });
 
-    res.json({ message: "User created" });
+    res.json({ message: "User created ✅" });
 
   } catch (err) {
     console.log("REGISTER ERROR:", err);
-    res.status(500).json({ error: "Server error" });
+    res.status(500).json({ error: "Server error ❌" });
   }
 });
-
 /* =========================
    🔐 LOGIN
 ========================= */
@@ -389,11 +425,18 @@ app.get("/api/command", (req, res) => {
 
   const cmd = lastCommand[account];
 
-  if (!cmd || cmd.executed) {
-    return res.json({ command: "" });
+  if (!cmd) {
+    return res.json({ command: "NONE" });
   }
 
-  return res.json(cmd);
+  // ✅ Send command
+  res.json(cmd);
+
+  // ✅ DELETE after sending (BEST APPROACH)
+  if (Date.now() - cmd.time > 10000) { // 10 sec
+	  delete lastCommand[account];
+	  return res.json({ command: "NONE" });
+	}
 });
 
 function isValidAccount(account) {
