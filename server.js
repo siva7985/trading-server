@@ -420,7 +420,7 @@ app.get("/api/command", (req, res) => {
   const account = req.query.account;
 
   if (!account) {
-    return res.json({ command: "" });
+    return res.json({ command: "NONE" });
   }
 
   const cmd = lastCommand[account];
@@ -429,14 +429,15 @@ app.get("/api/command", (req, res) => {
     return res.json({ command: "NONE" });
   }
 
-  // ✅ Send command
-  res.json(cmd);
+  // ⏱ allow command for 5 seconds
+  const age = Date.now() - cmd.time;
 
-  // ✅ DELETE after sending (BEST APPROACH)
-  if (Date.now() - cmd.time > 10000) { // 10 sec
-	  delete lastCommand[account];
-	  return res.json({ command: "NONE" });
-	}
+  if (age > 5000) {
+    delete lastCommand[account];
+    return res.json({ command: "NONE" });
+  }
+
+  res.json(cmd);
 });
 
 function isValidAccount(account) {
