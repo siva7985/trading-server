@@ -195,6 +195,11 @@ app.post("/api/login", async (req, res) => {
   if (!user) {
     return res.status(401).json({ error: "User not found" });
   }
+  
+  // ❌ BLOCK if not verified
+	if (!user.verified) {
+	  return res.status(403).json({ error: "Please verify your account first ❌" });
+	}
 
   const isMatch = await bcrypt.compare(password, user.password);
 
@@ -431,8 +436,15 @@ app.get("/api/data", auth, async (req, res) => {
   });
 
   res.json({
-    username: user.username,
-    accounts: result
+	  username: user.username,
+	  fullName: user.fullName,
+	  gender: user.gender,
+	  email: user.email,
+	  phone: user.phone,
+	  country: user.country,
+	  accounts: result
+	});
+	
   });
 });
 
