@@ -446,7 +446,6 @@ app.get("/api/data", auth, async (req, res) => {
 	});
 	
   });
-});
 
 /* =========================
    📌 COMMAND API
