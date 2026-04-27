@@ -21,21 +21,20 @@ mongoose.connect("mongodb+srv://admin:Nsrk798489@tradingapp.t6uqbxa.mongodb.net/
    📦 USER MODEL
 ========================= */
 const UserSchema = new mongoose.Schema({
-  // ✅ NEW FIELDS (optional for old users)
   fullName: String,
   gender: String,
   email: { type: String, unique: true, sparse: true },
   phone: String,
   country: String,
 
-  // ✅ EXISTING
   username: { type: String, unique: true },
   password: String,
   accounts: [String],
 
-  // ✅ OTP (already you have)
   otp: String,
-  otpExpiry: Date
+  otpExpiry: Date,
+
+  verified: { type: Boolean, default: false } // ✅ NEW
 });
 
 const User = mongoose.model("User", UserSchema);
