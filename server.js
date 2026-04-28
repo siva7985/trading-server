@@ -382,6 +382,43 @@ app.post("/api/update-account", auth, async (req, res) => {
 });
 
 /* =========================
+   ✏️ UPDATE PROFILE
+========================= */
+app.post("/api/update-profile", auth, async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { fullName, gender, email } = req.body;
+
+    const user = await User.findById(userId);
+
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    // ✅ Update fields
+    user.fullName = fullName || user.fullName;
+    user.gender = gender || user.gender;
+    user.email = email || user.email;
+
+    await user.save();
+
+    res.json({
+      message: "Profile updated ✅",
+      user: {
+        fullName: user.fullName,
+        gender: user.gender,
+        email: user.email,
+        username: user.username
+      }
+    });
+
+  } catch (err) {
+    console.log("UPDATE PROFILE ERROR:", err);
+    res.status(500).json({ error: "Server error ❌" });
+  }
+});
+
+/* =========================
    📊 Delete-account
 ========================= */
 
