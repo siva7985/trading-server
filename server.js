@@ -419,6 +419,58 @@ app.post("/api/update-profile", auth, async (req, res) => {
 });
 
 /* =========================
+   🔐 CHANGE PASSWORD
+========================= */
+app.post("/api/change-password", auth, async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { oldPassword, newPassword } = req.body;
+
+    if (!oldPassword || !newPassword) {
+      return res.status(400).json({
+        error: "All fields required ❌"
+      });
+    }
+
+    if (newPassword.length < 6) {
+      return res.status(400).json({
+        error: "Password must be at least 6 characters ❌"
+      });
+    }
+
+    const user = await User.findById(userId);
+
+    if (!user) {
+      return res.status(404).json({ error: "User not found ❌" });
+    }
+
+    // ✅ Check old password
+    const isMatch = await bcrypt.compare(oldPassword, user.password);
+
+    if (!isMatch) {
+      return res.status(400).json({
+        error: "Old password is incorrect ❌"
+      });
+    }
+
+    // ✅ Hash new password
+    const hashed = await bcrypt.hash(newPassword, 10);
+    user.password = hashed;
+
+    await user.save();
+
+    res.json({ message: "Password changed successfully ✅" });
+
+  } catch (err) {
+    console.log("CHANGE PASSWORD ERROR:", err);
+    res.status(500).json({
+      error: "Server error ❌",
+      details: err.message
+    });
+  }
+});
+
+/* =========================
    📊 Delete-account
 ========================= */
 
