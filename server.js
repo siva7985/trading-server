@@ -14,7 +14,17 @@ const SECRET = "my_secret_key";
    🔗 MONGODB CONNECT
 ========================= */
 mongoose.connect("mongodb+srv://admin:Nsrk798489@tradingapp.t6uqbxa.mongodb.net/trading_app?retryWrites=true&w=majority")
-  .then(() => console.log("MongoDB Connected"))
+  .then(async () => {
+    console.log("MongoDB Connected");
+
+    // ✅ RUN ONLY ONCE
+    const result = await User.updateMany(
+      { role: { $exists: false } },
+      { $set: { role: "user" } }
+    );
+
+    console.log("Users updated:", result.modifiedCount);
+  })
   .catch(err => console.log(err));
 
 /* =========================
@@ -45,11 +55,6 @@ const UserSchema = new mongoose.Schema({
 });
 
 const User = mongoose.model("User", UserSchema);
-
-db.users.updateMany(
-  { role: { $exists: false } },
-  { $set: { role: "user" } }
-);
 
 /* =========================
    📦 DATA MODEL (FIXED)
