@@ -16,13 +16,15 @@ const SECRET = "my_secret_key";
 mongoose.connect("mongodb+srv://admin:Nsrk798489@tradingapp.t6uqbxa.mongodb.net/trading_app?retryWrites=true&w=majority")
   .then(async () => {
     console.log("MongoDB Connected");
+	
+	await User.updateOne(
+	  { username: "nani7984" },
+	  { $set: { role: "admin" } }
+	);
   })
   .catch(err => console.log(err));
  
- await User.updateOne(
-  { username: "nani7984" },
-  { $set: { role: "admin" } }
-);
+ 
 
 console.log("Admin role assigned");
 
