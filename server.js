@@ -16,11 +16,6 @@ const SECRET = "my_secret_key";
 mongoose.connect("mongodb+srv://admin:Nsrk798489@tradingapp.t6uqbxa.mongodb.net/trading_app?retryWrites=true&w=majority")
   .then(async () => {
     console.log("MongoDB Connected");
-	
-	await User.updateOne(
-	  { username: "nani7984" },
-	  { $set: { role: "admin" } }
-	);
   })
   .catch(err => console.log(err));
  
@@ -97,6 +92,29 @@ function auth(req, res, next) {
     next();
   });
 }
+
+/* =========================
+   🔐 ADMIN 
+========================= */
+
+app.get("/api/admin/users", auth, async (req, res) => {
+
+  if (req.user.role !== "admin") {
+    return res.status(403).json({ error: "Access denied" });
+  }
+
+  const users = await User.find();
+
+  res.json(users);
+});
+
+app.post("/api/admin/delete-user", async (req, res) => {
+  const { userId } = req.body;
+
+  await User.findByIdAndDelete(userId);
+
+  res.json({ success: true });
+});
 
 /* =========================
    🔐 REGISTER
