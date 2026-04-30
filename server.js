@@ -112,6 +112,15 @@ app.post("/api/admin/delete-user", async (req, res) => {
   res.json({ success: true });
 });
 
+app.get("/api/profile", async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id).select("-password");
+    res.json(user);
+  } catch (err) {
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
 /* =========================
    🔐 REGISTER
 ========================= */
