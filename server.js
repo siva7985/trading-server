@@ -16,13 +16,6 @@ const SECRET = "my_secret_key";
 mongoose.connect("mongodb+srv://admin:Nsrk798489@tradingapp.t6uqbxa.mongodb.net/trading_app?retryWrites=true&w=majority")
   .then(async () => {
     console.log("MongoDB Connected");
-	
-	const result = await User.updateMany(
-      { role: { $exists: false } },
-      { $set: { role: "user" } }
-    );
-
-    console.log("Users updated:", result.modifiedCount);
   })
   .catch(err => console.log(err));
 
