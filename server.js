@@ -34,10 +34,22 @@ const UserSchema = new mongoose.Schema({
   otp: String,
   otpExpiry: Date,
 
-  verified: { type: Boolean, default: false } // ✅ NEW
+  verified: { type: Boolean, default: false },
+
+  // 🔥 ADD THIS
+  role: {
+    type: String,
+    enum: ["user", "admin"],
+    default: "user"
+  }
 });
 
 const User = mongoose.model("User", UserSchema);
+
+db.users.updateMany(
+  { role: { $exists: false } },
+  { $set: { role: "user" } }
+);
 
 /* =========================
    📦 DATA MODEL (FIXED)
@@ -195,11 +207,11 @@ app.post("/api/login", async (req, res) => {
   if (!user) {
     return res.status(401).json({ error: "User not found" });
   }
-  
+
   // ❌ BLOCK if not verified
-	/*if (!user.verified) {
-	  return res.status(403).json({ error: "Please verify your account first ❌" });
-	}*/
+  if (!user.verified) {
+    return res.status(403).json({ error: "Please verify your account first ❌" });
+  }
 
   const isMatch = await bcrypt.compare(password, user.password);
 
@@ -207,11 +219,19 @@ app.post("/api/login", async (req, res) => {
     return res.status(401).json({ error: "Wrong password" });
   }
 
-  const token = jwt.sign({ id: user._id }, SECRET, {
-    expiresIn: "1d"
-  });
+  // ✅ ADD ROLE IN TOKEN
+  const token = jwt.sign(
+    { id: user._id, role: user.role || "user" },
+    SECRET,
+    { expiresIn: "1d" }
+  );
 
-  res.json({ token, userId: user._id });
+  // ✅ SEND ROLE TO FRONTEND
+  res.json({
+    token,
+    userId: user._id,
+    role: user.role || "user"
+  });
 });
 
 /* =========================
