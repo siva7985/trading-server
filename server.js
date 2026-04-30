@@ -233,9 +233,9 @@ app.post("/api/login", async (req, res) => {
   }
 
   // ❌ BLOCK if not verified
-  if (!user.verified) {
+  /*if (!user.verified) {
     return res.status(403).json({ error: "Please verify your account first ❌" });
-  }
+  }*/
 
   const isMatch = await bcrypt.compare(password, user.password);
 
