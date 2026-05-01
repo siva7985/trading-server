@@ -48,7 +48,14 @@ const UserSchema = new mongoose.Schema({
 	isActive: {
 	  type: Boolean,
 	  default: true
-	}
+	},	
+	
+	suspendReason: {
+	  type: String,
+	  default: ""
+	},
+	suspendedAt: Date,
+	suspendedBy: String,
 });
 
 const User = mongoose.model("User", UserSchema);
@@ -79,17 +86,27 @@ const Data = mongoose.model("Data", DataSchema);
 /* =========================
    🔐 AUTH MIDDLEWARE
 ========================= */
-function auth(req, res, next) {
+async function auth(req, res, next) {
   const header = req.headers.authorization;
 
   if (!header) return res.status(403).send("No token");
 
   const token = header.split(" ")[1];
 
-  jwt.verify(token, SECRET, (err, user) => {
+  jwt.verify(token, SECRET, async (err, decoded) => {
     if (err) return res.status(403).send("Invalid token");
 
-    req.user = user;
+    const user = await User.findById(decoded.id);
+
+    // 🔥 AUTO BLOCK
+    if (!user || !user.isActive) {
+      return res.status(403).json({
+        error: "Account suspended",
+        code: "SUSPENDED"
+      });
+    }
+
+    req.user = decoded;
     next();
   });
 }
@@ -174,14 +191,12 @@ app.get("/api/admin/user-data/:userId", auth, async (req, res) => {
 
 app.post("/api/admin/toggle-user", auth, async (req, res) => {
   try {
-    // ✅ ADMIN CHECK
     if (req.user.role !== "admin") {
       return res.status(403).json({ error: "Access denied ❌" });
     }
 
-    const { userId } = req.body;
+    const { userId, reason } = req.body;
 
-    // ❌ Prevent self-disable
     if (req.user.id === userId) {
       return res.status(400).json({
         error: "You cannot disable yourself ❌"
@@ -197,16 +212,53 @@ app.post("/api/admin/toggle-user", auth, async (req, res) => {
     // 🔥 TOGGLE
     user.isActive = !user.isActive;
 
+    if (!user.isActive) {
+      user.suspendReason = reason || "No reason provided";
+      user.suspendedAt = new Date();
+      user.suspendedBy = req.user.id;
+    } else {
+      user.suspendReason = "";
+      user.suspendedAt = null;
+      user.suspendedBy = null;
+    }
+
     await user.save();
 
     res.json({
       success: true,
       isActive: user.isActive
     });
+	
+	await Audit.create({
+	  adminId: req.user.id,
+	  action: user.isActive ? "ACTIVATED" : "SUSPENDED",
+	  targetUserId: user._id,
+	  reason: user.suspendReason
+	});
 
   } catch (err) {
     res.status(500).json({ error: "Server error" });
   }
+});
+
+const AuditSchema = new mongoose.Schema({
+  adminId: String,
+  action: String,
+  targetUserId: String,
+  reason: String,
+  time: { type: Date, default: Date.now }
+});
+
+const Audit = mongoose.model("Audit", AuditSchema);
+
+app.get("/api/admin/audit", auth, async (req, res) => {
+  if (req.user.role !== "admin") {
+    return res.status(403).json({ error: "Access denied" });
+  }
+
+  const logs = await Audit.find().sort({ time: -1 });
+
+  res.json(logs);
 });
 
 /* =========================
