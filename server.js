@@ -99,12 +99,17 @@ app.get("/api/admin/users", auth, async (req, res) => {
     return res.status(403).json({ error: "Access denied" });
   }
 
-  const users = await User.find();
+  const users = await User.find({ role: "user" });
 
   res.json(users);
 });
 
-app.post("/api/admin/delete-user", async (req, res) => {
+app.post("/api/admin/delete-user", auth, async (req, res) => {
+
+  if (req.user.role !== "admin") {
+    return res.status(403).json({ error: "Access denied" });
+  }
+
   const { userId } = req.body;
 
   await User.findByIdAndDelete(userId);
