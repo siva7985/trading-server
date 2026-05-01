@@ -127,6 +127,47 @@ app.get("/api/profile", auth, async (req, res) => {
 });
 
 /* =========================
+   📊 ADMIN → USER TRADES
+========================= */
+
+app.get("/api/admin/user-data/:userId", auth, async (req, res) => {
+
+  // 🔒 Only admin allowed
+  if (req.user.role !== "admin") {
+    return res.status(403).json({ error: "Access denied" });
+  }
+
+  const { userId } = req.params;
+
+  const user = await User.findById(userId);
+
+  if (!user) {
+    return res.status(404).json({ error: "User not found" });
+  }
+
+  const data = await Data.find({
+    account: { $in: user.accounts }
+  });
+
+  const result = user.accounts.map(acc => {
+    const d = data.find(x => x.account === acc);
+
+    return {
+      account: acc,
+      balance: d?.balance || 0,
+      equity: d?.equity || 0,
+      profit: d?.profit || 0,
+      trades: d?.trades || []
+    };
+  });
+
+  res.json({
+    username: user.username,
+    accounts: result
+  });
+});
+
+/* =========================
    🔐 REGISTER
 ========================= */
 app.post("/api/register", async (req, res) => {
