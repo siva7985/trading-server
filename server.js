@@ -43,7 +43,12 @@ const UserSchema = new mongoose.Schema({
     type: String,
     enum: ["user", "admin"],
     default: "user"
-  }
+  },
+
+	isActive: {
+	  type: Boolean,
+	  default: true
+	}
 });
 
 const User = mongoose.model("User", UserSchema);
@@ -167,6 +172,43 @@ app.get("/api/admin/user-data/:userId", auth, async (req, res) => {
   });
 });
 
+app.post("/api/admin/toggle-user", auth, async (req, res) => {
+  try {
+    // ✅ ADMIN CHECK
+    if (req.user.role !== "admin") {
+      return res.status(403).json({ error: "Access denied ❌" });
+    }
+
+    const { userId } = req.body;
+
+    // ❌ Prevent self-disable
+    if (req.user.id === userId) {
+      return res.status(400).json({
+        error: "You cannot disable yourself ❌"
+      });
+    }
+
+    const user = await User.findById(userId);
+
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    // 🔥 TOGGLE
+    user.isActive = !user.isActive;
+
+    await user.save();
+
+    res.json({
+      success: true,
+      isActive: user.isActive
+    });
+
+  } catch (err) {
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
 /* =========================
    🔐 REGISTER
 ========================= */
@@ -281,6 +323,12 @@ app.post("/api/login", async (req, res) => {
 
   if (!user) {
     return res.status(401).json({ error: "User not found" });
+  }
+  
+  if (!user.isActive) {
+	return res.status(403).json({
+	  error: "Your account is suspended by admin ❌"
+	});
   }
 
   // ❌ BLOCK if not verified
@@ -602,6 +650,12 @@ app.get("/api/data", auth, async (req, res) => {
   const userId = req.user.id;
 
   const user = await User.findById(userId);
+  
+  if (!user.isActive) {
+	  return res.status(403).json({
+		error: "Account suspended"
+	  });
+	}
 
   const data = await Data.find({
     account: { $in: user.accounts }
