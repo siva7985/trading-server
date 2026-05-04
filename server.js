@@ -115,6 +115,32 @@ async function auth(req, res, next) {
    🔐 ADMIN 
 ========================= */
 
+/* =========================
+   👤 ADMIN → SINGLE USER
+========================= */
+app.get("/api/admin/user/:userId", auth, async (req, res) => {
+  try {
+    // 🔒 Only admin
+    if (req.user.role !== "admin") {
+      return res.status(403).json({ error: "Access denied" });
+    }
+
+    const { userId } = req.params;
+
+    const user = await User.findById(userId).select("-password");
+
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    res.json(user);
+
+  } catch (err) {
+    console.log("FETCH USER ERROR:", err);
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
 app.get("/api/admin/users", auth, async (req, res) => {
 
   if (req.user.role !== "admin") {
