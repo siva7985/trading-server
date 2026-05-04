@@ -207,6 +207,7 @@ app.get("/api/admin/user-data/:userId", auth, async (req, res) => {
     const d = data.find(x => x.account === acc);
 
     return {
+	  userId: user._id,
       account: acc,
       balance: d?.balance || 0,
       equity: d?.equity || 0,
