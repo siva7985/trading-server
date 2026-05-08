@@ -374,33 +374,43 @@ app.post("/api/register", async (req, res) => {
       verified: false
     });
 
-    // ✅ SEND OTP EMAIL
-	await transporter.sendMail({
-	  from: "siva7984@gmail.com",
-	  to: email,
-	  subject: "TradePro Email Verification OTP",
-	  html: `
-		<div style="font-family:Arial;padding:20px;">
-		  <h2>TradePro Verification</h2>
+    console.log("Sending OTP email to:", email);
 
-		  <p>Hello ${fullName},</p>
+	try {
 
-		  <p>Your OTP for account verification is:</p>
+	  const info = await transporter.sendMail({
+		from: "siva7984@gmail.com",
+		to: email,
+		subject: "TradePro Email Verification OTP",
+		html: `
+		  <div style="font-family:Arial;padding:20px;">
+			<h2>TradePro Verification</h2>
 
-		  <h1 style="color:#2563eb;">${otp}</h1>
+			<p>Hello ${fullName},</p>
 
-		  <p>This OTP will expire in 5 minutes.</p>
+			<p>Your OTP for account verification is:</p>
 
-		  <br>
+			<h1 style="color:#2563eb;">${otp}</h1>
 
-		  <p>Thank you,<br>TradePro Team</p>
-		</div>
-	  `
-	});
+			<p>This OTP will expire in 5 minutes.</p>
 
-	res.json({
-	  message: "OTP sent to your email ✅"
-	});
+			<br>
+
+			<p>Thank you,<br>TradePro Team</p>
+		  </div>
+		`
+	  });
+
+	  console.log("EMAIL SENT:", info.response);
+
+	} catch (mailError) {
+
+	  console.log("MAIL ERROR:", mailError);
+
+	  return res.status(500).json({
+		error: "Email sending failed ❌"
+	  });
+	}
 
   } catch (err) {
     console.log("REGISTER ERROR:", err);
