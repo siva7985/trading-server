@@ -402,6 +402,10 @@ app.post("/api/register", async (req, res) => {
 	  });
 
 	  console.log("EMAIL SENT:", info.response);
+	  
+	  return res.json({
+		message: "OTP sent to your email ✅"
+	  });
 
 	} catch (mailError) {
 
