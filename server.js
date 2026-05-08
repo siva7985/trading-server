@@ -583,7 +583,7 @@ app.post("/api/reset-password", async (req, res) => {
 ========================= */
 app.post("/api/update", async (req, res) => {
 	
-  console.log("UPDATE HIT:", req.body);
+  //console.log("UPDATE HIT:", req.body);
 	
   const { account, balance, equity, profit, trades } = req.body;
 
