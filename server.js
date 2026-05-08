@@ -1,3 +1,5 @@
+const transporter = require("./config/mailer");
+
 const express = require("express");
 const cors = require("cors");
 const mongoose = require("mongoose");
@@ -5,6 +7,8 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 
 const app = express();
+
+const otpStore = {};
 
 app.use(cors({
   origin: "*",
@@ -116,6 +120,27 @@ async function auth(req, res, next) {
     next();
   });
 }
+
+app.get("/test-email", async (req, res) => {
+  try {
+
+    await transporter.sendMail({
+      from: "siva7984@gmail.com",
+      to: "nsrkrishna79@gmail.com",
+      subject: "TradePro Test Email",
+      html: `
+        <h2>Email Working Successfully ✅</h2>
+        <p>Your TradePro mail system is ready.</p>
+      `
+    });
+
+    res.send("Email sent successfully");
+
+  } catch (e) {
+    console.log(e);
+    res.send("Email failed");
+  }
+});
 
 /* =========================
    🔐 ADMIN 
@@ -349,9 +374,33 @@ app.post("/api/register", async (req, res) => {
       verified: false
     });
 
-    console.log("REGISTER OTP:", otp);
+    // ✅ SEND OTP EMAIL
+	await transporter.sendMail({
+	  from: "siva7984@gmail.com",
+	  to: email,
+	  subject: "TradePro Email Verification OTP",
+	  html: `
+		<div style="font-family:Arial;padding:20px;">
+		  <h2>TradePro Verification</h2>
 
-    res.json({ message: "OTP sent for verification" });
+		  <p>Hello ${fullName},</p>
+
+		  <p>Your OTP for account verification is:</p>
+
+		  <h1 style="color:#2563eb;">${otp}</h1>
+
+		  <p>This OTP will expire in 5 minutes.</p>
+
+		  <br>
+
+		  <p>Thank you,<br>TradePro Team</p>
+		</div>
+	  `
+	});
+
+	res.json({
+	  message: "OTP sent to your email ✅"
+	});
 
   } catch (err) {
     console.log("REGISTER ERROR:", err);
