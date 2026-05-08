@@ -1,4 +1,4 @@
-const transporter = require("./config/mailer");
+const transporter = require("./config/mailer.js");
 
 const express = require("express");
 const cors = require("cors");
