@@ -1,10 +1,25 @@
 const nodemailer = require("nodemailer");
 
 const transporter = nodemailer.createTransport({
-  service: "gmail",
+   host: "smtp.gmail.com",
+  port: 465,
+  secure: true,
+  
   auth: {
     user: "siva7984@gmail.com",
     pass: "ohcgoxlvwczupptp"
+  }
+  
+  tls: {
+    rejectUnauthorized: false
+  }
+});
+
+transporter.verify((error, success) => {
+  if (error) {
+    console.log("MAIL ERROR:", error);
+  } else {
+    console.log("MAIL SERVER READY ✅");
   }
 });
 
