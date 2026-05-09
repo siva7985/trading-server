@@ -131,17 +131,14 @@ async function auth(req, res, next) {
 app.get("/test-email", async (req, res) => {
   try {
 
-    await transporter.sendMail({
-      from: "siva7984@gmail.com",
+    await resend.emails.send({
+      from: "onboarding@resend.dev",
       to: "nsrkrishna79@gmail.com",
       subject: "TradePro Test Email",
-      html: `
-        <h2>Email Working Successfully ✅</h2>
-        <p>Your TradePro mail system is ready.</p>
-      `
+      html: "<h1>Email Working ✅</h1>"
     });
 
-    res.send("Email sent successfully");
+    res.send("Email sent");
 
   } catch (e) {
     console.log(e);
@@ -340,6 +337,8 @@ app.post("/api/register", async (req, res) => {
       username,
       password
     } = req.body;
+	
+	email = email?.toLowerCase().trim();
 
     if (!username || !password) {
       return res.status(400).json({ error: "Username & Password required ❌" });
@@ -355,7 +354,9 @@ app.post("/api/register", async (req, res) => {
     }
 
     if (email) {
-      const existingEmail = await User.findOne({ email });
+      const existingEmail = await User.findOne({
+		  email: email
+		});
       if (existingEmail) {
         return res.status(400).json({ error: "Email already registered ❌" });
       }
@@ -408,7 +409,8 @@ app.post("/api/register", async (req, res) => {
 		  `
 		});
 
-	  console.log("EMAIL SENT:", info.response);
+	  console.log("EMAIL SENT ✅");
+	  console.log(info);
 	  
 	  return res.json({
 		message: "OTP sent to your email ✅"
