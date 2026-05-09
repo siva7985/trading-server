@@ -1,29 +1,6 @@
-const nodemailer = require("nodemailer");
+const { Resend } = require("resend");
 
-const transporter = nodemailer.createTransport({
-   host: "smtp.gmail.com",
-  port: 465,
-  secure: true,
-  
-  auth: {
-    user: "siva7984@gmail.com",
-    pass: "ohcgoxlvwczupptp"
-  },
-  
-  tls: {
-    rejectUnauthorized: false
-  }
-});
-
-transporter.verify((error, success) => {
-  if (error) {
-    console.log("MAIL ERROR:", error);
-  } else {
-    console.log("MAIL SERVER READY ✅");
-  }
-});
-
-module.exports = transporter;
+const resend = new Resend("re_Q2ZhqKp3_GiAP4yPM7xEiGb3erp7s5F53");
 
 const express = require("express");
 const cors = require("cors");
@@ -408,28 +385,28 @@ app.post("/api/register", async (req, res) => {
 
 	try {
 
-	  const info = await transporter.sendMail({
-		from: "siva7984@gmail.com",
-		to: email,
-		subject: "TradePro Email Verification OTP",
-		html: `
-		  <div style="font-family:Arial;padding:20px;">
-			<h2>TradePro Verification</h2>
+	  const info = await resend.emails.send({
+		  from: "onboarding@resend.dev",
+		  to: email,
+		  subject: "TradePro Email Verification OTP",
+		  html: `
+			<div style="font-family:Arial;padding:20px;">
+			  <h2>TradePro Verification</h2>
 
-			<p>Hello ${fullName},</p>
+			  <p>Hello ${fullName},</p>
 
-			<p>Your OTP for account verification is:</p>
+			  <p>Your OTP for account verification is:</p>
 
-			<h1 style="color:#2563eb;">${otp}</h1>
+			  <h1 style="color:#2563eb;">${otp}</h1>
 
-			<p>This OTP will expire in 5 minutes.</p>
+			  <p>This OTP will expire in 5 minutes.</p>
 
-			<br>
+			  <br>
 
-			<p>Thank you,<br>TradePro Team</p>
-		  </div>
-		`
-	  });
+			  <p>Thank you,<br>TradePro Team</p>
+			</div>
+		  `
+		});
 
 	  console.log("EMAIL SENT:", info.response);
 	  
