@@ -1,4 +1,14 @@
-const transporter = require("./config/mailer.js");
+const nodemailer = require("nodemailer");
+
+const transporter = nodemailer.createTransport({
+  service: "gmail",
+  auth: {
+    user: "siva7984@gmail.com",
+    pass: "ohcgoxlvwczupptp"
+  }
+});
+
+module.exports = transporter;
 
 const express = require("express");
 const cors = require("cors");
@@ -24,7 +34,7 @@ const SECRET = "my_secret_key";
    🔗 MONGODB CONNECT
 ========================= */
 mongoose.connect(
-  "mongodb://tradepro:TradePro123@ac-xxxx-shard-00-00.x.mongodb.net:27017,ac-xxxx-shard-00-01.x.mongodb.net:27017,ac-xxxx-shard-00-02.x.mongodb.net:27017/trading_app?ssl=true&replicaSet=atlas-xxxxx-shard-0&authSource=admin&retryWrites=true&w=majority"
+  "mongodb://admin:Nsrk798489@ac-qzlcbod-shard-00-00.t6uqbxa.mongodb.net:27017,ac-qzlcbod-shard-00-01.t6uqbxa.mongodb.net:27017,ac-qzlcbod-shard-00-02.t6uqbxa.mongodb.net:27017/?ssl=true&replicaSet=atlas-esm0ag-shard-0&authSource=admin&appName=TradingApp"
 )
 .then(() => {
   console.log("MongoDB Connected ✅");
