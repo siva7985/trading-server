@@ -42,11 +42,11 @@ mongoose.connect(
 const UserSchema = new mongoose.Schema({
   fullName: String,
   gender: String,
-  email: { type: String, unique: true, lowercase: true, trim: true, sparse: true },
+  email: { type: String},
   phone: String,
   country: String,
 
-  username: { type: String, unique: true },
+  username: { type: String},
   password: String,
   accounts: [String],
 
