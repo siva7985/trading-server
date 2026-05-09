@@ -42,7 +42,7 @@ mongoose.connect(
 const UserSchema = new mongoose.Schema({
   fullName: String,
   gender: String,
-  email: { type: String, unique: true, sparse: true },
+  email: { type: String, unique: true, lowercase: true, trim: true, sparse: true },
   phone: String,
   country: String,
 
@@ -424,7 +424,7 @@ app.post("/api/register", async (req, res) => {
 	}
 
   } catch (err) {
-    console.log("REGISTER ERROR:", err);
+    console.log(err);
     res.status(500).json({ error: "Server error ❌" });
   }
 });
