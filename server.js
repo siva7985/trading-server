@@ -24,7 +24,7 @@ const SECRET = "my_secret_key";
    🔗 MONGODB CONNECT
 ========================= */
 mongoose.connect(
-  "mongodb://admin:Nsrk798489@ac-xxxx-shard-00-00.x.mongodb.net:27017,ac-xxxx-shard-00-01.x.mongodb.net:27017,ac-xxxx-shard-00-02.x.mongodb.net:27017/trading_app?ssl=true&replicaSet=atlas-xxxxx-shard-0&authSource=admin&retryWrites=true&w=majority"
+  "mongodb://tradepro:TradePro123@ac-xxxx-shard-00-00.x.mongodb.net:27017,ac-xxxx-shard-00-01.x.mongodb.net:27017,ac-xxxx-shard-00-02.x.mongodb.net:27017/trading_app?ssl=true&replicaSet=atlas-xxxxx-shard-0&authSource=admin&retryWrites=true&w=majority"
 )
 .then(() => {
   console.log("MongoDB Connected ✅");
