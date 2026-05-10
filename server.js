@@ -26,7 +26,7 @@ const SECRET = "my_secret_key";
    🔗 MONGODB CONNECT
 ========================= */
 mongoose.connect(
-  "mongodb://admin:Nsrk798489@ac-qzlcbod-shard-00-00.t6uqbxa.mongodb.net:27017,ac-qzlcbod-shard-00-01.t6uqbxa.mongodb.net:27017,ac-qzlcbod-shard-00-02.t6uqbxa.mongodb.net:27017/?ssl=true&replicaSet=atlas-esm0ag-shard-0&authSource=admin&appName=TradingApp"
+  "mongodb://admin:Nsrk798489@ac-qzlcbod-shard-00-00.t6uqbxa.mongodb.net:27017,ac-qzlcbod-shard-00-01.t6uqbxa.mongodb.net:27017,ac-qzlcbod-shard-00-02.t6uqbxa.mongodb.net:27017/trading_app?ssl=true&replicaSet=atlas-esm0ag-shard-0&authSource=admin&appName=TradingApp"
 )
 .then(() => {
   console.log("MongoDB Connected ✅");
@@ -76,6 +76,15 @@ const UserSchema = new mongoose.Schema({
 });
 
 const User = mongoose.model("User", UserSchema);
+
+
+app.get("/check-users", async (req, res) => {
+  const users = await User.find();
+
+  console.log(users);
+
+  res.json(users);
+});
 
 /* =========================
    📦 DATA MODEL (FIXED)
