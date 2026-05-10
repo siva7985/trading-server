@@ -1,7 +1,3 @@
-const { Resend } = require("resend");
-
-const resend = new Resend("re_Q2ZhqKp3_GiAP4yPM7xEiGb3erp7s5F53");
-
 const express = require("express");
 const cors = require("cors");
 const mongoose = require("mongoose");
@@ -149,24 +145,6 @@ async function auth(req, res, next) {
     next();
   });
 }
-
-app.get("/test-email", async (req, res) => {
-  try {
-
-    await resend.emails.send({
-      from: "onboarding@resend.dev",
-      to: "nsrkrishna79@gmail.com",
-      subject: "TradePro Test Email",
-      html: "<h1>Email Working ✅</h1>"
-    });
-
-    res.send("Email sent");
-
-  } catch (e) {
-    console.log(e);
-    res.send("Email failed");
-  }
-});
 
 /* =========================
    🔐 ADMIN 
@@ -389,10 +367,6 @@ app.post("/api/register", async (req, res) => {
 
     const hashed = await bcrypt.hash(password, 10);
 
-    const otp = Math.floor(
-      100000 + Math.random() * 900000
-    ).toString();
-
     await User.create({
       fullName,
       gender,
@@ -402,85 +376,22 @@ app.post("/api/register", async (req, res) => {
       username,
       password: hashed,
       accounts: [],
-      otp,
-      otpExpiry: Date.now() + 5 * 60 * 1000,
-      verified: false
+      role: "user",
+      isActive: true
     });
-
-    console.log("Sending OTP email to:", email);
-
-    const info = await resend.emails.send({
-      from: "onboarding@resend.dev",
-      to: email,
-      subject: "TradePro Verification OTP",
-      html: `
-        <div style="font-family:Arial;padding:20px;">
-          <h2>TradePro Verification</h2>
-
-          <p>Your OTP is:</p>
-
-          <h1>${otp}</h1>
-
-          <p>Expires in 5 minutes.</p>
-        </div>
-      `
-    });
-
-    console.log("EMAIL SENT ✅");
-    console.log(info);
 
     res.json({
       success: true,
-      message: "OTP sent successfully ✅"
+      message: "Registration successful ✅"
     });
 
   } catch (err) {
 
-    console.log("REGISTER ERROR:");
-    console.log(err);
+    console.log("REGISTER ERROR:", err);
 
     res.status(500).json({
-      error: err.message
+      error: "Server error ❌"
     });
-  }
-});
-
-app.post("/api/verify-register", async (req, res) => {
-  try {
-    const { username, otp } = req.body;
-
-    if (!username || !otp) {
-      return res.status(400).json({ error: "Missing data ❌" });
-    }
-
-    const user = await User.findOne({ username });
-
-    if (!user) {
-      return res.status(404).json({ error: "User not found ❌" });
-    }
-
-    // ❌ Already verified
-    if (user.verified) {
-      return res.json({ message: "Already verified ✅" });
-    }
-
-    // ❌ Wrong or expired OTP
-    if (user.otp !== otp || Date.now() > user.otpExpiry) {
-      return res.status(400).json({ error: "Invalid or expired OTP ❌" });
-    }
-
-    // ✅ SUCCESS
-    user.verified = true;
-    user.otp = null;
-    user.otpExpiry = null;
-
-    await user.save();
-
-    res.json({ message: "Account verified successfully ✅" });
-
-  } catch (err) {
-    console.log("VERIFY ERROR:", err);
-    res.status(500).json({ error: "Server error ❌" });
   }
 });
 
