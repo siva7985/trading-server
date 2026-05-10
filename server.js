@@ -362,18 +362,16 @@ app.post("/api/register", async (req, res) => {
       password
     } = req.body;
 
-    email = (email || "").toLowerCase().trim();
-    username = (username || "").trim();
+    email = email?.toLowerCase().trim();
+    username = username?.trim();
 
-    console.log("BODY:", req.body);
-    console.log("FINAL EMAIL:", email);
-    console.log("FINAL USERNAME:", username);
+    if (!fullName || !email || !username || !password) {
+      return res.status(400).json({
+        error: "All fields required ❌"
+      });
+    }
 
-    const existingUser = await User.findOne({
-      username: username
-    });
-
-    console.log("FOUND USER:", existingUser);
+    const existingUser = await User.findOne({ username });
 
     if (existingUser) {
       return res.status(400).json({
@@ -381,11 +379,7 @@ app.post("/api/register", async (req, res) => {
       });
     }
 
-    const existingEmail = await User.findOne({
-      email: email
-    });
-
-    console.log("FOUND EMAIL:", existingEmail);
+    const existingEmail = await User.findOne({ email });
 
     if (existingEmail) {
       return res.status(400).json({
@@ -393,13 +387,56 @@ app.post("/api/register", async (req, res) => {
       });
     }
 
+    const hashed = await bcrypt.hash(password, 10);
+
+    const otp = Math.floor(
+      100000 + Math.random() * 900000
+    ).toString();
+
+    await User.create({
+      fullName,
+      gender,
+      email,
+      phone,
+      country,
+      username,
+      password: hashed,
+      accounts: [],
+      otp,
+      otpExpiry: Date.now() + 5 * 60 * 1000,
+      verified: false
+    });
+
+    console.log("Sending OTP email to:", email);
+
+    const info = await resend.emails.send({
+      from: "onboarding@resend.dev",
+      to: email,
+      subject: "TradePro Verification OTP",
+      html: `
+        <div style="font-family:Arial;padding:20px;">
+          <h2>TradePro Verification</h2>
+
+          <p>Your OTP is:</p>
+
+          <h1>${otp}</h1>
+
+          <p>Expires in 5 minutes.</p>
+        </div>
+      `
+    });
+
+    console.log("EMAIL SENT ✅");
+    console.log(info);
+
     res.json({
       success: true,
-      message: "Everything working ✅"
+      message: "OTP sent successfully ✅"
     });
 
   } catch (err) {
 
+    console.log("REGISTER ERROR:");
     console.log(err);
 
     res.status(500).json({
