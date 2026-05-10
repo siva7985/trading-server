@@ -86,6 +86,19 @@ app.get("/check-users", async (req, res) => {
   res.json(users);
 });
 
+app.get("/debug-register", async (req, res) => {
+
+  const users = await User.find();
+
+  const emails = users.map(u => u.email);
+  const usernames = users.map(u => u.username);
+
+  res.json({
+    emails,
+    usernames
+  });
+});
+
 /* =========================
    📦 DATA MODEL (FIXED)
 ========================= */
@@ -334,7 +347,7 @@ app.get("/api/admin/audit", auth, async (req, res) => {
 
 /* =========================
    🔐 REGISTER
-========================= */
+========================= 
 app.post("/api/register", async (req, res) => {
   try {
     const {
@@ -437,6 +450,64 @@ app.post("/api/register", async (req, res) => {
   } catch (err) {
     console.log(err);
     res.status(500).json({ error: "Server error ❌" });
+  }
+}); */
+
+
+app.post("/api/register", async (req, res) => {
+  try {
+
+    console.log("BODY:", req.body);
+
+    let {
+      fullName,
+      gender,
+      email,
+      phone,
+      country,
+      username,
+      password
+    } = req.body;
+
+    email = email?.toLowerCase().trim();
+    username = username?.trim();
+
+    console.log("EMAIL:", email);
+    console.log("USERNAME:", username);
+
+    const existingUser = await User.findOne({ username });
+
+    console.log("existingUser:", existingUser);
+
+    if (existingUser) {
+      return res.status(400).json({
+        error: "Username already exists ❌"
+      });
+    }
+
+    const existingEmail = await User.findOne({ email });
+
+    console.log("existingEmail:", existingEmail);
+
+    if (existingEmail) {
+      return res.status(400).json({
+        error: "Email already registered ❌"
+      });
+    }
+
+    return res.json({
+      success: true,
+      message: "Registration checks passed ✅"
+    });
+
+  } catch (err) {
+
+    console.log("REGISTER ERROR:");
+    console.log(err);
+
+    return res.status(500).json({
+      error: err.message
+    });
   }
 });
 
