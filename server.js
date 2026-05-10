@@ -347,117 +347,10 @@ app.get("/api/admin/audit", auth, async (req, res) => {
 
 /* =========================
    🔐 REGISTER
-========================= 
-app.post("/api/register", async (req, res) => {
-  try {
-    const {
-      fullName,
-      gender,
-      email,
-      phone,
-      country,
-      username,
-      password
-    } = req.body;
-	
-	email = email?.toLowerCase().trim();
-
-    if (!username || !password) {
-      return res.status(400).json({ error: "Username & Password required ❌" });
-    }
-
-    if (!fullName || !email || !phone) {
-      return res.status(400).json({ error: "All details required ❌" });
-    }
-
-    const existingUser = await User.findOne({ username });
-    if (existingUser) {
-      return res.status(400).json({ error: "Username already exists ❌" });
-    }
-
-    if (email) {
-      const existingEmail = await User.findOne({
-		  email: email
-		});
-      if (existingEmail) {
-        return res.status(400).json({ error: "Email already registered ❌" });
-      }
-    }
-
-    const hashed = await bcrypt.hash(password, 10);
-
-    // ✅ NEW LOGIC
-    const otp = Math.floor(100000 + Math.random() * 900000).toString();
-
-    await User.create({
-      fullName,
-      gender,
-      email,
-      phone,
-      country,
-      username,
-      password: hashed,
-      accounts: [],
-
-      otp: otp,
-      otpExpiry: Date.now() + 5 * 60 * 1000,
-      verified: false
-    });
-
-    console.log("Sending OTP email to:", email);
-
-	try {
-
-	  const info = await resend.emails.send({
-		  from: "onboarding@resend.dev",
-		  to: email,
-		  subject: "TradePro Email Verification OTP",
-		  html: `
-			<div style="font-family:Arial;padding:20px;">
-			  <h2>TradePro Verification</h2>
-
-			  <p>Hello ${fullName},</p>
-
-			  <p>Your OTP for account verification is:</p>
-
-			  <h1 style="color:#2563eb;">${otp}</h1>
-
-			  <p>This OTP will expire in 5 minutes.</p>
-
-			  <br>
-
-			  <p>Thank you,<br>TradePro Team</p>
-			</div>
-		  `
-		});
-
-	  console.log("EMAIL SENT ✅");
-	  console.log(info);
-	  
-	  return res.json({
-		message: "OTP sent to your email ✅"
-	  });
-
-	} catch (mailError) {
-
-	  console.log("MAIL ERROR:", mailError);
-
-	  return res.status(500).json({
-		error: "Email sending failed ❌"
-	  });
-	}
-
-  } catch (err) {
-    console.log(err);
-    res.status(500).json({ error: "Server error ❌" });
-  }
-}); */
-
+========================= */
 
 app.post("/api/register", async (req, res) => {
   try {
-
-    console.log("BODY:", req.body);
 
     let {
       fullName,
@@ -469,15 +362,18 @@ app.post("/api/register", async (req, res) => {
       password
     } = req.body;
 
-    email = email?.toLowerCase().trim();
-    username = username?.trim();
+    email = (email || "").toLowerCase().trim();
+    username = (username || "").trim();
 
-    console.log("EMAIL:", email);
-    console.log("USERNAME:", username);
+    console.log("BODY:", req.body);
+    console.log("FINAL EMAIL:", email);
+    console.log("FINAL USERNAME:", username);
 
-    const existingUser = await User.findOne({ username });
+    const existingUser = await User.findOne({
+      username: username
+    });
 
-    console.log("existingUser:", existingUser);
+    console.log("FOUND USER:", existingUser);
 
     if (existingUser) {
       return res.status(400).json({
@@ -485,9 +381,11 @@ app.post("/api/register", async (req, res) => {
       });
     }
 
-    const existingEmail = await User.findOne({ email });
+    const existingEmail = await User.findOne({
+      email: email
+    });
 
-    console.log("existingEmail:", existingEmail);
+    console.log("FOUND EMAIL:", existingEmail);
 
     if (existingEmail) {
       return res.status(400).json({
@@ -495,17 +393,16 @@ app.post("/api/register", async (req, res) => {
       });
     }
 
-    return res.json({
+    res.json({
       success: true,
-      message: "Registration checks passed ✅"
+      message: "Everything working ✅"
     });
 
   } catch (err) {
 
-    console.log("REGISTER ERROR:");
     console.log(err);
 
-    return res.status(500).json({
+    res.status(500).json({
       error: err.message
     });
   }
