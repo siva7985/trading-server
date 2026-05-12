@@ -908,9 +908,9 @@ app.get("/api/data", auth, async (req, res) => {
 	  equity: d?.equity || null,
 	  profit: d?.profit || null,
 
-	  eaRunning: isLive,
-	  mt5Connected: isLive,
-	  vpsOnline: isLive,
+	  eaRunning: isLive && d?.eaRunning,
+	  mt5Connected: isLive && d?.mt5Connected,
+	  vpsOnline: isLive && d?.vpsOnline,
 
 	  ping: isLive ? d?.ping || 0 : 0,
 
