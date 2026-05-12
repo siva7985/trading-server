@@ -890,21 +890,34 @@ app.get("/api/data", auth, async (req, res) => {
   const result = user.accounts.map(acc => {
     const d = data.find(x => x.account === acc);
 
-    return {
-      account: acc,
-      balance: d?.balance || null,
-      equity: d?.equity || null,
-      profit: d?.profit || null,
-	  
-	  eaRunning: d?.eaRunning || false,
-	  mt5Connected: d?.mt5Connected || false,
-	  vpsOnline: d?.vpsOnline || false,
-	  ping: d?.ping || 0,
-	  
+    const now = Date.now();
+
+	const lastUpdate = d?.lastUpdate
+	  ? new Date(d.lastUpdate).getTime()
+	  : 0;
+
+	const diff = now - lastUpdate;
+
+	/// 30 seconds timeout
+	const isLive = diff < 30000;
+
+	return {
+	  account: acc,
+
+	  balance: d?.balance || null,
+	  equity: d?.equity || null,
+	  profit: d?.profit || null,
+
+	  eaRunning: isLive,
+	  mt5Connected: isLive,
+	  vpsOnline: isLive,
+
+	  ping: isLive ? d?.ping || 0 : 0,
+
 	  lastUpdate: d?.lastUpdate || null,
-  
-      trades: d?.trades || []
-    };
+
+	  trades: d?.trades || []
+	};
   });
 
   res.json({
