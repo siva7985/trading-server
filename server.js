@@ -69,6 +69,11 @@ const UserSchema = new mongoose.Schema({
 	},
 	suspendedAt: Date,
 	suspendedBy: String,
+	
+	forcePasswordChange: {
+	  type: Boolean,
+	  default: false,
+	},
 });
 
 const User = mongoose.model("User", UserSchema);
@@ -399,44 +404,127 @@ app.post("/api/register", async (req, res) => {
    🔐 LOGIN
 ========================= */
 app.post("/api/login", async (req, res) => {
+
   const { username, password } = req.body;
 
-  const user = await User.findOne({ username });
+  try {
 
-  if (!user) {
-    return res.status(401).json({ error: "User not found" });
+    const user = await User.findOne({ username });
+
+    if (!user) {
+      return res.status(401).json({
+        error: "User not found"
+      });
+    }
+
+    if (!user.isActive) {
+      return res.status(403).json({
+        error: "Your account is suspended by admin ❌"
+      });
+    }
+
+    /// CHECK PASSWORD
+    const isMatch = await bcrypt.compare(
+      password,
+      user.password
+    );
+
+    if (!isMatch) {
+      return res.status(401).json({
+        error: "Wrong password"
+      });
+    }
+
+    /// CREATE TOKEN
+    const token = jwt.sign(
+      {
+        id: user._id,
+        role: user.role || "user"
+      },
+      SECRET,
+      { expiresIn: "1d" }
+    );
+
+    /// FORCE PASSWORD CHANGE
+    if (user.forcePasswordChange) {
+
+      return res.json({
+        token,
+        role: user.role,
+        forcePasswordChange: true,
+      });
+
+    }
+
+    /// NORMAL LOGIN
+    res.json({
+      token,
+      userId: user._id,
+      role: user.role || "user",
+      forcePasswordChange: false,
+    });
+
+  } catch (err) {
+
+    console.log(err);
+
+    res.status(500).json({
+      error: "Server error"
+    });
+
   }
-  
-  if (!user.isActive) {
-	return res.status(403).json({
-	  error: "Your account is suspended by admin ❌"
-	});
+
+});
+
+/* ===========================
+      GENERATE TEMP PASSWORD
+============================*/
+
+app.post("/api/generate-temp-password", async (req, res) => {
+
+  const { username, email } = req.body;
+
+  try {
+
+    const user = await User.findOne({
+      username,
+      email,
+    });
+
+    if (!user) {
+      return res.status(400).json({
+        error: "Invalid username or email"
+      });
+    }
+
+    /// TEMP PASSWORD
+    const tempPassword =
+        "TMP" + Math.floor(100000 + Math.random() * 900000);
+
+    /// HASH PASSWORD
+    const hashed =
+        await bcrypt.hash(tempPassword, 10);
+
+    user.password = hashed;
+
+    /// FORCE CHANGE PASSWORD
+    user.forcePasswordChange = true;
+
+    await user.save();
+
+    res.json({
+      success: true,
+      tempPassword,
+    });
+
+  } catch (e) {
+
+    res.status(500).json({
+      error: e.toString(),
+    });
+
   }
 
-  // ❌ BLOCK if not verified
-  /*if (!user.verified) {
-    return res.status(403).json({ error: "Please verify your account first ❌" });
-  }*/
-
-  const isMatch = await bcrypt.compare(password, user.password);
-
-  if (!isMatch) {
-    return res.status(401).json({ error: "Wrong password" });
-  }
-
-  // ✅ ADD ROLE IN TOKEN
-  const token = jwt.sign(
-    { id: user._id, role: user.role || "user" },
-    SECRET,
-    { expiresIn: "1d" }
-  );
-
-  // ✅ SEND ROLE TO FRONTEND
-  res.json({
-    token,
-    userId: user._id,
-    role: user.role || "user"
-  });
 });
 
 /* =========================
@@ -684,6 +772,8 @@ app.post("/api/change-password", auth, async (req, res) => {
     // ✅ Hash new password
     const hashed = await bcrypt.hash(newPassword, 10);
     user.password = hashed;
+	
+	user.forcePasswordChange = false;
 
     await user.save();
 
