@@ -895,6 +895,14 @@ app.get("/api/data", auth, async (req, res) => {
       balance: d?.balance || null,
       equity: d?.equity || null,
       profit: d?.profit || null,
+	  
+	  eaRunning: d?.eaRunning || false,
+	  mt5Connected: d?.mt5Connected || false,
+	  vpsOnline: d?.vpsOnline || false,
+	  ping: d?.ping || 0,
+	  
+	  lastUpdate: d?.lastUpdate || null,
+  
       trades: d?.trades || []
     };
   });
