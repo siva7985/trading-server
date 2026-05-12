@@ -104,18 +104,48 @@ app.get("/debug-register", async (req, res) => {
    📦 DATA MODEL (FIXED)
 ========================= */
 const DataSchema = new mongoose.Schema({
+
   userId: {
     type: mongoose.Schema.Types.ObjectId,
     required: true
   },
+
   account: {
     type: String,
     required: true
   },
+
   balance: Number,
   equity: Number,
   profit: Number,
-  trades: Array
+
+  trades: Array,
+
+  eaRunning: {
+    type: Boolean,
+    default: false
+  },
+
+  mt5Connected: {
+    type: Boolean,
+    default: false
+  },
+
+  vpsOnline: {
+    type: Boolean,
+    default: false
+  },
+
+  lastUpdate: {
+    type: Date,
+    default: Date.now
+  },
+
+  ping: {
+    type: Number,
+    default: 0
+  }
+
 });
 
 // 🔥 IMPORTANT (multi-account per user)
@@ -621,7 +651,20 @@ app.post("/api/update", async (req, res) => {
 	
   //console.log("UPDATE HIT:", req.body);
 	
-  const { account, balance, equity, profit, trades } = req.body;
+  const {
+
+	  account,
+	  balance,
+	  equity,
+	  profit,
+	  trades,
+
+	  eaRunning,
+	  mt5Connected,
+	  vpsOnline,
+	  ping,
+
+	} = req.body;
 
   const user = await User.findOne({ accounts: account });
 
@@ -637,7 +680,15 @@ app.post("/api/update", async (req, res) => {
     balance,
     equity,
     profit,
-    trades
+    trades,
+
+	  eaRunning,
+	  mt5Connected,
+	  vpsOnline,
+
+	  lastUpdate: new Date(),
+
+	  ping,
   },
   { upsert: true, new: true }
 );
