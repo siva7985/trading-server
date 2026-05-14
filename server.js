@@ -147,13 +147,6 @@ const DataSchema = new mongoose.Schema({
     type: Number,
     default: 0
   }
-  
-  DataSchema.index(
-	  { userId: 1, account: 1 },
-	  { unique: true }
-	);
- 
-  const Data = mongoose.model("Data", DataSchema);
 
 });
 
