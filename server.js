@@ -6,6 +6,8 @@ const jwt = require("jsonwebtoken");
 
 const app = express();
 
+app.use(express.json());
+
 const otpStore = {};
 
 app.use(cors({
