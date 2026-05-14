@@ -567,50 +567,8 @@ app.post("/api/generate-temp-password", async (req, res) => {
 });
 
 /*=================================================
-			TRADE-COMMAND
+            TRADE COMMAND MODEL
 =================================================*/
-
-app.post("/api/trade-command", async (req, res) => {
-
-  try {
-
-    const {
-      account,
-      type,
-      symbol,
-      lot
-    } = req.body;
-
-    console.log(req.body);
-
-    // save command
-    await TradeCommand.create({
-
-      account,
-      type,
-      symbol,
-      lot,
-      status: "pending",
-      createdAt: new Date(),
-    });
-
-    res.json({
-      success: true,
-      message: "Trade command sent",
-    });
-
-  } catch (e) {
-
-    console.log(e);
-
-    res.status(500).json({
-      success: false,
-      message: "Server Error",
-    });
-  }
-});
-
-const mongoose = require("mongoose");
 
 const TradeCommandSchema =
     new mongoose.Schema({
@@ -634,11 +592,60 @@ const TradeCommandSchema =
   },
 });
 
-module.exports =
+const TradeCommand =
     mongoose.model(
       "TradeCommand",
       TradeCommandSchema,
     );
+
+/*=================================================
+            TRADE COMMAND API
+=================================================*/
+
+app.post("/api/trade-command", async (req, res) => {
+
+  try {
+
+    const {
+      account,
+      type,
+      symbol,
+      lot
+    } = req.body;
+
+    console.log("TRADE COMMAND:", req.body);
+
+    await TradeCommand.create({
+
+      account,
+      type,
+      symbol,
+      lot,
+
+      status: "pending",
+
+      createdAt: new Date(),
+    });
+
+    res.json({
+
+      success: true,
+
+      message: "Trade command sent ✅",
+    });
+
+  } catch (e) {
+
+    console.log("TRADE ERROR:", e);
+
+    res.status(500).json({
+
+      success: false,
+
+      message: "Server Error ❌",
+    });
+  }
+});
 
 /* =========================
    ➕ ADD ACCOUNT
