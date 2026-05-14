@@ -145,6 +145,13 @@ const DataSchema = new mongoose.Schema({
     type: Number,
     default: 0
   }
+  
+  DataSchema.index(
+	  { userId: 1, account: 1 },
+	  { unique: true }
+	);
+ 
+  const Data = mongoose.model("Data", DataSchema);
 
 });
 
@@ -556,6 +563,80 @@ app.post("/api/generate-temp-password", async (req, res) => {
   }
 
 });
+
+/*=================================================
+			TRADE-COMMAND
+=================================================*/
+
+app.post("/api/trade-command", async (req, res) => {
+
+  try {
+
+    const {
+      account,
+      type,
+      symbol,
+      lot
+    } = req.body;
+
+    console.log(req.body);
+
+    // save command
+    await TradeCommand.create({
+
+      account,
+      type,
+      symbol,
+      lot,
+      status: "pending",
+      createdAt: new Date(),
+    });
+
+    res.json({
+      success: true,
+      message: "Trade command sent",
+    });
+
+  } catch (e) {
+
+    console.log(e);
+
+    res.status(500).json({
+      success: false,
+      message: "Server Error",
+    });
+  }
+});
+
+const mongoose = require("mongoose");
+
+const TradeCommandSchema =
+    new mongoose.Schema({
+
+  account: String,
+
+  type: String,
+
+  symbol: String,
+
+  lot: Number,
+
+  status: {
+    type: String,
+    default: "pending",
+  },
+
+  createdAt: {
+    type: Date,
+    default: Date.now,
+  },
+});
+
+module.exports =
+    mongoose.model(
+      "TradeCommand",
+      TradeCommandSchema,
+    );
 
 /* =========================
    ➕ ADD ACCOUNT
