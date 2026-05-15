@@ -640,6 +640,74 @@ app.post("/api/trade-command", async (req, res) => {
   }
 });
 
+/*===================================================
+			PENDING-COMMAND
+===================================================*/
+
+app.get("/api/pending-command", async (req, res) => {
+
+  try {
+
+    const account =
+        req.query.account;
+
+    const cmd =
+        await TradeCommand.findOne({
+
+      account,
+      status: "pending",
+
+    }).sort({ createdAt: 1 });
+
+    if (!cmd) {
+
+      return res.json({
+        success: false,
+      });
+    }
+
+    res.json({
+      success: true,
+      command: cmd,
+    });
+
+  } catch (e) {
+
+    res.status(500).json({
+      success: false,
+    });
+  }
+});
+
+/*===================================================
+			COMPLETE-COMMAND
+===================================================*/
+
+app.post("/api/complete-command", async (req, res) => {
+
+  try {
+
+    const { id } = req.body;
+
+    await TradeCommand.findByIdAndUpdate(
+      id,
+      {
+        status: "completed",
+      }
+    );
+
+    res.json({
+      success: true,
+    });
+
+  } catch (e) {
+
+    res.status(500).json({
+      success: false,
+    });
+  }
+});
+
 /* =========================
    ➕ ADD ACCOUNT
 ========================= */
