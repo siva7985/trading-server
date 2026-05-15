@@ -652,12 +652,18 @@ app.get("/api/pending-command", async (req, res) => {
         req.query.account;
 
     const cmd =
-        await TradeCommand.findOne({
-
-      account,
-      status: "pending",
-
-    }).sort({ createdAt: 1 });
+	await TradeCommand.findOneAndUpdate(
+	{
+	   account,
+	   status: "pending",
+	},
+	{
+	   status: "processing",
+	},
+	{
+	   sort: { createdAt: 1 },
+	   new: true,
+	});
 
     if (!cmd) {
 
