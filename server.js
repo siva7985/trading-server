@@ -120,6 +120,8 @@ const DataSchema = new mongoose.Schema({
   balance: Number,
   equity: Number,
   profit: Number,
+  
+  price: Number,
 
   trades: Array,
 
@@ -814,6 +816,7 @@ app.post("/api/update", async (req, res) => {
 	  balance,
 	  equity,
 	  profit,
+	  price,
 	  trades,
 
 	  eaRunning,
@@ -837,6 +840,7 @@ app.post("/api/update", async (req, res) => {
     balance,
     equity,
     profit,
+	price,
     trades,
 
 	  eaRunning,
