@@ -121,7 +121,7 @@ const DataSchema = new mongoose.Schema({
   equity: Number,
   profit: Number,
   
-  price: Object,
+  prices: Object,
 
   trades: Array,
 
