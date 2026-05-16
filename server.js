@@ -1068,6 +1068,8 @@ app.get("/api/data", auth, async (req, res) => {
 	  balance: d?.balance || null,
 	  equity: d?.equity || null,
 	  profit: d?.profit || null,
+	  
+	  price: d?.price || 0,
 
 	  eaRunning: isLive && d?.eaRunning,
 	  mt5Connected: isLive && d?.mt5Connected,
