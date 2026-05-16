@@ -121,7 +121,7 @@ const DataSchema = new mongoose.Schema({
   equity: Number,
   profit: Number,
   
-  price: Number,
+  price: Object,
 
   trades: Array,
 
@@ -816,7 +816,7 @@ app.post("/api/update", async (req, res) => {
 	  balance,
 	  equity,
 	  profit,
-	  price,
+	  prices,
 	  trades,
 
 	  eaRunning,
@@ -840,7 +840,7 @@ app.post("/api/update", async (req, res) => {
     balance,
     equity,
     profit,
-	price,
+	prices,
     trades,
 
 	  eaRunning,
@@ -1069,7 +1069,7 @@ app.get("/api/data", auth, async (req, res) => {
 	  equity: d?.equity || null,
 	  profit: d?.profit || null,
 	  
-	  price: d?.price || 0,
+	  price: d?.price || {},
 
 	  eaRunning: isLive && d?.eaRunning,
 	  mt5Connected: isLive && d?.mt5Connected,
