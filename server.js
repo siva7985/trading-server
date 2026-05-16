@@ -575,6 +575,8 @@ const TradeCommandSchema =
   symbol: String,
 
   lot: Number,
+  
+  price: Number,
 
   status: {
     type: String,
@@ -605,7 +607,8 @@ app.post("/api/trade-command", async (req, res) => {
       account,
       type,
       symbol,
-      lot
+      lot,
+	  price
     } = req.body;
 
     console.log("TRADE COMMAND:", req.body);
@@ -616,6 +619,7 @@ app.post("/api/trade-command", async (req, res) => {
       type,
       symbol,
       lot,
+	  price,
 
       status: "pending",
 
