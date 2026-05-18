@@ -1146,17 +1146,23 @@ app.post("/api/update-settings", async (req, res) => {
 
     const updatedSettings = data.settings.map(item => {
 
-      if (settings[item.name] !== undefined) {
+	  const itemName = item.name.trim();
 
-        return {
-          name: item.name,
-          type: item.type,
-          value: settings[item.name]
-        };
-      }
+	  const matchedKey = Object.keys(settings).find(
+		key => key.trim().toLowerCase() === itemName.toLowerCase()
+	  );
 
-      return item;
-    });
+	  if (matchedKey) {
+
+		return {
+		  name: item.name,
+		  type: item.type,
+		  value: settings[matchedKey]
+		};
+	  }
+
+	  return item;
+	});
 
     data.settings = updatedSettings;
 
