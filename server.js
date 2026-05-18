@@ -1193,30 +1193,6 @@ app.get("/api/get-settings", async (req, res) => {
   });
 });
 
-
-app.get("/fix-settings", async (req, res) => {
-
-  try {
-
-    await Data.updateMany(
-      {},
-      {
-        $set: {
-          settings: []
-        }
-      }
-    );
-
-    res.send("Settings reset done ✅");
-
-  } catch(err) {
-
-    res.send(err.toString());
-
-  }
-
-});
-
 /* =========================
    📌 COMMAND API
 ========================= */
