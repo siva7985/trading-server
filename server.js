@@ -1095,7 +1095,9 @@ app.get("/api/data", auth, async (req, res) => {
 
 	  lastUpdate: d?.lastUpdate || null,
 
-	  trades: d?.trades || []
+	  trades: d?.trades || [],
+	  
+	  settings: d?.settings || []
 	};
   });
 
