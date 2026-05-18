@@ -1204,34 +1204,30 @@ app.get("/api/get-settings", async (req, res) => {
     const account = req.query.account;
 
     if (!account) {
-      return res.status(400).json({
-        success: false,
-        error: "Account required"
-      });
+      return res.json({});
     }
 
     const data = await Data.findOne({ account });
 
-    if (!data) {
-      return res.status(404).json({
-        success: false,
-        error: "Account not found"
-      });
+    if (!data || !data.settings) {
+      return res.json({});
     }
 
-    res.json({
-      success: true,
-      settings: data.settings || []
+    const result = {};
+
+    data.settings.forEach(item => {
+
+      result[item.name] = String(item.value);
+
     });
+
+    res.json(result);
 
   } catch (err) {
 
     console.log("GET SETTINGS ERROR:", err);
 
-    res.status(500).json({
-      success: false,
-      error: err.message
-    });
+    res.json({});
   }
 });
 
