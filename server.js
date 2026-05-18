@@ -1129,16 +1129,20 @@ app.post("/api/update-settings", async (req, res) => {
 
     const { account, settings } = req.body;
 
-    console.log(data.settings);
-    console.log(settings);
+    console.log("ACCOUNT:", account);
+    console.log("NEW SETTINGS:", settings);
 
     const data = await Data.findOne({ account });
 
     if (!data) {
+
       return res.json({
-        success: false
+        success: false,
+        error: "Account not found"
       });
     }
+
+    console.log("OLD SETTINGS:", data.settings);
 
     const updatedSettings = data.settings.map(item => {
 
@@ -1160,10 +1164,11 @@ app.post("/api/update-settings", async (req, res) => {
 
     await data.save();
 
-    console.log(data.settings);
+    console.log("UPDATED SETTINGS:", data.settings);
 
     res.json({
-      success: true
+      success: true,
+      settings: data.settings
     });
 
   } catch (err) {
