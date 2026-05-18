@@ -1112,6 +1112,27 @@ app.get("/api/data", auth, async (req, res) => {
 	});
 	
   });
+  
+/* =========================
+   📌 EA UPDATE-SETTINGS
+========================= */
+  app.post("/api/update-settings", async (req, res) => {
+
+  const { account, settings } = req.body;
+
+  await Data.findOneAndUpdate(
+
+    { account },
+
+    {
+      pendingSettings: settings
+    }
+  );
+
+  res.json({
+    success: true
+  });
+});
 
 /* =========================
    📌 COMMAND API
