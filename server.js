@@ -1129,36 +1129,28 @@ app.post("/api/update-settings", async (req, res) => {
 
   console.log(settings);
 
-  const data =
-    await Data.findOne({ account });
+  const data = await Data.findOne({ account });
 
-  if(!data)
-  {
+  if (!data) {
     return res.json({
       success: false
     });
   }
 
-  // OLD SETTINGS ARRAY
-  let current =
-    data.settings || [];
+  let current = data.settings || [];
 
-  // UPDATE VALUES
-  current = current.map(item =>
-  {
-    if(settings[item.name] != null)
-    {
-      item.value =
-        settings[item.name];
+  current = current.map(item => {
+
+    if (settings[item.name] !== undefined) {
+      item.value = settings[item.name];
     }
 
     return item;
   });
 
-  // SAVE
-  data.pendingSettings = settings;
-
   data.settings = current;
+
+  data.pendingSettings = settings;
 
   await data.save();
 
