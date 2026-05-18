@@ -125,7 +125,16 @@ const DataSchema = new mongoose.Schema({
 
   trades: Array,
   
-  settings: Array,
+  settings: [
+    {
+      name: String,
+      type: String,
+      value: mongoose.Schema.Types.Mixed
+    }
+  ],
+
+  pendingSettings:
+    mongoose.Schema.Types.Mixed,
 
   eaRunning: {
     type: Boolean,
