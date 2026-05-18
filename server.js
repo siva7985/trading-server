@@ -1116,20 +1116,44 @@ app.get("/api/data", auth, async (req, res) => {
 /* =========================
    📌 EA UPDATE-SETTINGS
 ========================= */
-  app.post("/api/update-settings", async (req, res) => {
+app.post("/api/update-settings", async (req, res) => {
 
   const { account, settings } = req.body;
-  
+
   console.log(settings);
 
-  await Data.findOneAndUpdate(
+  const data =
+    await Data.findOne({ account });
 
-    { account },
+  if(!data)
+  {
+    return res.json({
+      success: false
+    });
+  }
 
+  // OLD SETTINGS ARRAY
+  let current =
+    data.settings || [];
+
+  // UPDATE VALUES
+  current = current.map(item =>
+  {
+    if(settings[item.name] != null)
     {
-      pendingSettings: settings
+      item.value =
+        settings[item.name];
     }
-  );
+
+    return item;
+  });
+
+  // SAVE
+  data.pendingSettings = settings;
+
+  data.settings = current;
+
+  await data.save();
 
   res.json({
     success: true
