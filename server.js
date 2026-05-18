@@ -124,6 +124,8 @@ const DataSchema = new mongoose.Schema({
   prices: Object,
 
   trades: Array,
+  
+  settings: Array,
 
   eaRunning: {
     type: Boolean,
@@ -811,24 +813,25 @@ app.post("/api/reset-password", async (req, res) => {
    📊 EA DATA UPDATE
 ========================= */
 app.post("/api/update", async (req, res) => {
-	
+
   console.log(req.body);
-	
+
   const {
 
-	  account,
-	  balance,
-	  equity,
-	  profit,
-	  prices,
-	  trades,
+    account,
+    balance,
+    equity,
+    profit,
+    prices,
+    trades,
+    settings,
 
-	  eaRunning,
-	  mt5Connected,
-	  vpsOnline,
-	  ping,
+    eaRunning,
+    mt5Connected,
+    vpsOnline,
+    ping,
 
-	} = req.body;
+  } = req.body;
 
   const user = await User.findOne({ accounts: account });
 
@@ -837,26 +840,35 @@ app.post("/api/update", async (req, res) => {
   }
 
   await Data.findOneAndUpdate(
-  { userId: user._id, account },  // 🔥 THIS IS KEY
-  {
-    userId: user._id,
-    account,
-    balance,
-    equity,
-    profit,
-	prices,
-    trades,
+    { userId: user._id, account },
 
-	  eaRunning,
-	  mt5Connected,
-	  vpsOnline,
+    {
+      userId: user._id,
 
-	  lastUpdate: new Date(),
+      account,
+      balance,
+      equity,
+      profit,
 
-	  ping,
-  },
-  { upsert: true, new: true }
-);
+      prices,
+      trades,
+
+      settings,
+
+      eaRunning,
+      mt5Connected,
+      vpsOnline,
+
+      lastUpdate: new Date(),
+
+      ping,
+    },
+
+    {
+      upsert: true,
+      new: true
+    }
+  );
 
   res.send("OK");
 });
