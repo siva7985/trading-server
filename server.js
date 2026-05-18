@@ -1125,45 +1125,56 @@ app.get("/api/data", auth, async (req, res) => {
 ========================= */
 app.post("/api/update-settings", async (req, res) => {
 
-  const { account, settings } = req.body;
+  try {
 
-  console.log("INCOMING SETTINGS:", settings);
+    const { account, settings } = req.body;
 
-  const data = await Data.findOne({ account });
+    console.log(data.settings);
+    console.log(settings);
 
-  if (!data) {
-    return res.json({
-      success: false
-    });
-  }
+    const data = await Data.findOne({ account });
 
-  // CREATE NEW ARRAY
-  const updatedSettings = data.settings.map(item => {
-
-    // MATCH NAME
-    if (Object.prototype.hasOwnProperty.call(settings, item.name)) {
-
-      return {
-        ...item.toObject(),
-        value: settings[item.name]
-      };
+    if (!data) {
+      return res.json({
+        success: false
+      });
     }
 
-    return item;
-  });
+    const updatedSettings = data.settings.map(item => {
 
-  // SAVE
-  data.settings = updatedSettings;
+      if (settings[item.name] !== undefined) {
 
-  data.markModified("settings");
+        return {
+          name: item.name,
+          type: item.type,
+          value: settings[item.name]
+        };
+      }
 
-  await data.save();
+      return item;
+    });
 
-  console.log("UPDATED SETTINGS:", data.settings);
+    data.settings = updatedSettings;
 
-  res.json({
-    success: true
-  });
+    data.markModified("settings");
+
+    await data.save();
+
+    console.log(data.settings);
+
+    res.json({
+      success: true
+    });
+
+  } catch (err) {
+
+    console.log("UPDATE SETTINGS ERROR:", err);
+
+    res.status(500).json({
+      success: false,
+      error: err.message
+    });
+  }
 });
 
 /* =========================
