@@ -1127,7 +1127,7 @@ app.post("/api/update-settings", async (req, res) => {
 
   const { account, settings } = req.body;
 
-  console.log(settings);
+  console.log("INCOMING SETTINGS:", settings);
 
   const data = await Data.findOne({ account });
 
@@ -1137,49 +1137,32 @@ app.post("/api/update-settings", async (req, res) => {
     });
   }
 
-  let current = data.settings || [];
+  // CREATE NEW ARRAY
+  const updatedSettings = data.settings.map(item => {
 
-  current = current.map(item => {
+    // MATCH NAME
+    if (Object.prototype.hasOwnProperty.call(settings, item.name)) {
 
-    if (settings[item.name] !== undefined) {
-      item.value = settings[item.name];
+      return {
+        ...item.toObject(),
+        value: settings[item.name]
+      };
     }
 
     return item;
   });
 
-  data.settings = current;
+  // SAVE
+  data.settings = updatedSettings;
 
-  data.pendingSettings = settings;
+  data.markModified("settings");
 
   await data.save();
 
+  console.log("UPDATED SETTINGS:", data.settings);
+
   res.json({
     success: true
-  });
-});
-
-
-app.get("/api/get-settings", async (req, res) => {
-
-  const { account } = req.query;
-
-  const data =
-      await Data.findOne({ account });
-
-  if(!data)
-  {
-    return res.json({
-      success: false
-    });
-  }
-
-  res.json({
-
-    success: true,
-
-    settings:
-        data.pendingSettings || {}
   });
 });
 
