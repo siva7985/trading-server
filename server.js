@@ -824,7 +824,6 @@ app.post("/api/update", async (req, res) => {
   console.log(req.body);
 
   const {
-
     account,
     balance,
     equity,
@@ -837,7 +836,6 @@ app.post("/api/update", async (req, res) => {
     mt5Connected,
     vpsOnline,
     ping,
-
   } = req.body;
 
   const user = await User.findOne({ accounts: account });
@@ -845,6 +843,14 @@ app.post("/api/update", async (req, res) => {
   if (!user) {
     return res.status(403).send("Account not linked");
   }
+
+  // ✅ KEEP EXISTING SETTINGS
+  const existingData = await Data.findOne({ account });
+
+  const finalSettings =
+    existingData?.settings?.length > 0
+      ? existingData.settings
+      : settings || [];
 
   await Data.findOneAndUpdate(
     { userId: user._id, account },
@@ -860,7 +866,7 @@ app.post("/api/update", async (req, res) => {
       prices,
       trades,
 
-      settings,
+      settings: finalSettings,
 
       eaRunning,
       mt5Connected,
