@@ -1195,6 +1195,47 @@ app.post("/api/update-settings", async (req, res) => {
 });
 
 /* =========================
+   📥 GET SETTINGS
+========================= */
+app.get("/api/get-settings", async (req, res) => {
+
+  try {
+
+    const account = req.query.account;
+
+    if (!account) {
+      return res.status(400).json({
+        success: false,
+        error: "Account required"
+      });
+    }
+
+    const data = await Data.findOne({ account });
+
+    if (!data) {
+      return res.status(404).json({
+        success: false,
+        error: "Account not found"
+      });
+    }
+
+    res.json({
+      success: true,
+      settings: data.settings || []
+    });
+
+  } catch (err) {
+
+    console.log("GET SETTINGS ERROR:", err);
+
+    res.status(500).json({
+      success: false,
+      error: err.message
+    });
+  }
+});
+
+/* =========================
    📌 COMMAND API
 ========================= */
 let lastCommand = {};
