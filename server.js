@@ -125,16 +125,12 @@ const DataSchema = new mongoose.Schema({
 
   trades: Array,
   
-  settings: [
-    {
-      name: String,
-      type: String,
-      value: mongoose.Schema.Types.Mixed
-    }
-  ],
+  settings: {
+    type: mongoose.Schema.Types.Mixed,
+    default: []
+  },
 
-  pendingSettings:
-    mongoose.Schema.Types.Mixed,
+  pendingSettings: mongoose.Schema.Types.Mixed,
 
   eaRunning: {
     type: Boolean,
@@ -165,6 +161,8 @@ const DataSchema = new mongoose.Schema({
 
 // 🔥 IMPORTANT (multi-account per user)
 DataSchema.index({ userId: 1, account: 1 }, { unique: true });
+
+mongoose.models = {};
 
 const Data = mongoose.model("Data", DataSchema);
 
