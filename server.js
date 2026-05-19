@@ -1163,7 +1163,11 @@ app.post("/api/update-settings", async (req, res) => {
 		return {
 		  name: item.name,
 		  type: item.type,
-		  value: settings[matchedKey]
+		  newValue !== undefined &&
+			newValue !== null &&
+			newValue !== ""
+			  ? newValue
+			  : item.value
 		};
 	  }
 
