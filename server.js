@@ -1155,19 +1155,38 @@ app.post("/api/update-settings", async (req, res) => {
 	  const itemName = item.name.trim();
 
 	  const matchedKey = Object.keys(settings).find(
-		key => key.trim().toLowerCase() === itemName.toLowerCase()
+		key =>
+		  key.trim().toLowerCase() ===
+		  itemName.toLowerCase()
 	  );
 
 	  if (matchedKey) {
 
+		let newValue = settings[matchedKey];
+
+		// BOOL SUPPORT
+		if (item.type === "bool") {
+
+		  newValue =
+			newValue === true ||
+			newValue === "true";
+
+		}
+
+		// NUMBER SUPPORT
+		else {
+
+		  newValue = Number(newValue);
+
+		  if (isNaN(newValue)) {
+			newValue = item.value;
+		  }
+		}
+
 		return {
 		  name: item.name,
 		  type: item.type,
-		  newValue !== undefined &&
-			newValue !== null &&
-			newValue !== ""
-			  ? newValue
-			  : item.value
+		  value: newValue
 		};
 	  }
 
