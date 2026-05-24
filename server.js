@@ -1,3 +1,7 @@
+require("dotenv").config({
+  quiet: true
+});
+
 const express = require("express");
 const cors = require("cors");
 const mongoose = require("mongoose");
@@ -5,10 +9,6 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 
 const app = express();
-
-app.use(express.json());
-
-const otpStore = {};
 
 app.use(cors({
   origin: "*",
@@ -18,17 +18,16 @@ app.use(cors({
 
 app.use(express.json());
 
-const SECRET = "my_secret_key";
+const SECRET = process.env.JWT_SECRET;
 
 /* =========================
    🔗 MONGODB CONNECT
 ========================= */
-mongoose.connect(
-  "mongodb://admin:Nsrk798489@ac-qzlcbod-shard-00-00.t6uqbxa.mongodb.net:27017,ac-qzlcbod-shard-00-01.t6uqbxa.mongodb.net:27017,ac-qzlcbod-shard-00-02.t6uqbxa.mongodb.net:27017/trading_app?ssl=true&replicaSet=atlas-esm0ag-shard-0&authSource=admin&appName=TradingApp"
-)
+mongoose.connect(process.env.MONGO_URI)
 .then(() => {
   console.log("MongoDB Connected ✅");
 })
+
 .catch(err => {
   console.log("MongoDB ERROR ❌");
   console.log(err);
@@ -848,9 +847,9 @@ app.post("/api/update", async (req, res) => {
   const existingData = await Data.findOne({ account });
 
   const finalSettings =
-    existingData?.settings?.length > 0
-      ? existingData.settings
-      : settings || [];
+	  settings && settings.length > 0
+		? settings
+		: existingData?.settings || [];
 
   await Data.findOneAndUpdate(
     { userId: user._id, account },
@@ -1254,6 +1253,42 @@ app.get("/api/get-settings", async (req, res) => {
   }
 });
 
+/*======================================================
+			MODIFY-TRADE
+======================================================*/
+app.post("/api/modify-trade", auth, async (req, res) => {
+
+  try {
+
+    const {
+      account,
+      ticket,
+      sl,
+      tp
+    } = req.body;
+
+    lastCommand[account] = {
+      command: "MODIFY",
+      ticket,
+      sl,
+      tp,
+      time: Date.now(),
+    };
+
+    res.json({
+      success: true
+    });
+
+  } catch (e) {
+
+    res.status(500).json({
+      success: false
+    });
+
+  }
+
+});
+
 /* =========================
    📌 COMMAND API
 ========================= */
@@ -1301,6 +1336,8 @@ app.get("/api/command", (req, res) => {
   }
 
   res.json(cmd);
+  
+  delete lastCommand[account];
 });
 
 function isValidAccount(account) {
