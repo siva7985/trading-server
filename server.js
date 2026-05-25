@@ -2,6 +2,8 @@ require("dotenv").config({
   quiet: true
 });
 
+console.log("JWT_SECRET =", process.env.JWT_SECRET);
+
 const express = require("express");
 
 const mongoose = require("mongoose");
