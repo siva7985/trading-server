@@ -2,7 +2,7 @@ require("dotenv").config({
   quiet: true
 });
 
-console.log("JWT_SECRET =", process.env.JWT_SECRET);
+const SECRET_KEY = process.env.SECRET_KEY;
 
 const express = require("express");
 
@@ -25,6 +25,22 @@ app.options("*", cors());
 app.use(express.json());
 
 const SECRET = process.env.JWT_SECRET;
+
+
+function verifySecret(req, res, next){
+
+    const secret = req.body.secret || req.query.secret;
+
+    if(secret !== SECRET_KEY){
+
+        return res.status(401).json({
+            error: "Unauthorized"
+        });
+
+    }
+
+    next();
+}
 
 /* =========================
    🔗 MONGODB CONNECT
@@ -86,27 +102,6 @@ const UserSchema = new mongoose.Schema({
 const User = mongoose.model("User", UserSchema);
 
 
-app.get("/check-users", async (req, res) => {
-  const users = await User.find();
-
-  console.log(users);
-
-  res.json(users);
-});
-
-app.get("/debug-register", async (req, res) => {
-
-  const users = await User.find();
-
-  const emails = users.map(u => u.email);
-  const usernames = users.map(u => u.username);
-
-  res.json({
-    emails,
-    usernames
-  });
-});
-
 /* =========================
    📦 DATA MODEL (FIXED)
 ========================= */
@@ -167,8 +162,6 @@ const DataSchema = new mongoose.Schema({
 // 🔥 IMPORTANT (multi-account per user)
 DataSchema.index({ userId: 1, account: 1 }, { unique: true });
 
-mongoose.models = {};
-
 const Data = mongoose.model("Data", DataSchema);
 
 /* =========================
@@ -218,7 +211,9 @@ app.get("/api/admin/user/:userId", auth, async (req, res) => {
     const user = await User.findById(userId).select("-password");
 
     if (!user) {
-      return res.status(404).json({ error: "User not found" });
+      return res.status(401).json({
+		   error: "Invalid username or password"
+		});
     }
 
     res.json(user);
@@ -479,8 +474,8 @@ app.post("/api/login", async (req, res) => {
 
     if (!isMatch) {
       return res.status(401).json({
-        error: "Wrong password"
-      });
+		   error: "Invalid username or password"
+		});
     }
 
     /// CREATE TOKEN
@@ -613,7 +608,7 @@ const TradeCommand =
             TRADE COMMAND API
 =================================================*/
 
-app.post("/api/trade-command", async (req, res) => {
+app.post("/api/trade-command", verifySecret, async (req, res) => {
 
   try {
 
@@ -664,7 +659,7 @@ app.post("/api/trade-command", async (req, res) => {
 			PENDING-COMMAND
 ===================================================*/
 
-app.get("/api/pending-command", async (req, res) => {
+app.get("/api/pending-command", verifySecret, async (req, res) => {
 
   try {
 
@@ -709,7 +704,7 @@ app.get("/api/pending-command", async (req, res) => {
 			COMPLETE-COMMAND
 ===================================================*/
 
-app.post("/api/complete-command", async (req, res) => {
+app.post("/api/complete-command", verifySecret, async (req, res) => {
 
   try {
 
@@ -824,7 +819,7 @@ app.post("/api/reset-password", async (req, res) => {
 /* =========================
    📊 EA DATA UPDATE
 ========================= */
-app.post("/api/update", async (req, res) => {
+app.post("/api/update", verifySecret, async (req, res) => {
 
   //console.log(req.body);
 
@@ -1225,7 +1220,7 @@ app.post("/api/update-settings", async (req, res) => {
 /* =========================
    📥 GET SETTINGS
 ========================= */
-app.get("/api/get-settings", async (req, res) => {
+app.get("/api/get-settings", verifySecret, async (req, res) => {
 
   try {
 
@@ -1320,7 +1315,7 @@ app.post("/api/send-command", auth, (req, res) => {
   res.json({ success: true });
 });
 
-app.get("/api/command", (req, res) => {
+app.get("/api/command", verifySecret, async(req, res) => {
   const account = req.query.account;
 
   if (!account) {
@@ -1364,13 +1359,4 @@ const PORT = process.env.PORT || 3000;
 
 app.listen(PORT, "0.0.0.0", () => {
   console.log("Server running on port", PORT);
-});
-
-app.get("/debug-data", async (req, res) => {
-  try {
-    const all = await Data.find();
-    res.json(all);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
 });
