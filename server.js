@@ -512,7 +512,7 @@ app.post("/api/login", async (req, res) => {
 
   } catch (err) {
 
-    console.log(err);
+    console.log("LOGIN ERROR:", err);
 
     res.status(500).json({
       error: "Server error"
