@@ -625,7 +625,7 @@ app.post("/api/trade-command", async (req, res) => {
 	  price
     } = req.body;
 
-    console.log("TRADE COMMAND:", req.body);
+    //console.log("TRADE COMMAND:", req.body);
 
     await TradeCommand.create({
 
@@ -826,7 +826,7 @@ app.post("/api/reset-password", async (req, res) => {
 ========================= */
 app.post("/api/update", async (req, res) => {
 
-  console.log(req.body);
+  //console.log(req.body);
 
   const {
     account,
