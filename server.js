@@ -1410,7 +1410,7 @@ app.post("/api/send-command", auth, async (req, res) => {
 
     // ✅ ALLOWED COMMANDS
     const allowedCommands = [
-      "CLOSE",
+      "CLOSE_TRADE",
       "MODIFY",
       "CLOSEALL",
       "BUY",
