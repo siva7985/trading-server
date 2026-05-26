@@ -744,9 +744,13 @@ app.get("/api/pending-command", verifySecret, async (req, res) => {
     }
 
     res.json({
-      success: true,
-      command: cmd,
-    });
+	  success: true,
+	  _id: cmd._id,
+	  type: cmd.type,
+	  symbol: cmd.symbol,
+	  lot: cmd.lot,
+	  price: cmd.price || 0
+	});
 
   } catch (e) {
 
@@ -766,7 +770,12 @@ app.post("/api/complete-command", verifySecret, async (req, res) => {
 
     const { id } = req.body;
 
-    await Command.findByIdAndDelete(id);
+    await TradeCommand.findByIdAndUpdate(
+         id,
+         {
+            status: "completed"
+         }
+      );
 
     res.json({
       success: true
