@@ -590,7 +590,7 @@ app.post("/api/generate-temp-password", async (req, res) => {
 
 /*=================================================
             TRADE COMMAND MODEL
-=================================================*/
+=================================================
 
 const TradeCommandSchema =
     new mongoose.Schema({
@@ -620,7 +620,7 @@ const TradeCommand =
     mongoose.model(
       "TradeCommand",
       TradeCommandSchema,
-    );
+    );*/
 	
 const CommandSchema = new mongoose.Schema({
 
@@ -662,7 +662,7 @@ const Command = mongoose.model("Command", CommandSchema);
 
 /*=================================================
             TRADE COMMAND API
-=================================================*/
+=================================================
 
 app.post("/api/trade-command", verifySecret, async (req, res) => {
 
@@ -709,11 +709,11 @@ app.post("/api/trade-command", verifySecret, async (req, res) => {
       message: "Server Error ❌",
     });
   }
-});
+});*/
 
 /*===================================================
 			PENDING-COMMAND
-===================================================*/
+===================================================
 
 app.get("/api/pending-command", verifySecret, async (req, res) => {
 
@@ -758,11 +758,11 @@ app.get("/api/pending-command", verifySecret, async (req, res) => {
       success: false,
     });
   }
-});
+});*/
 
 /*===================================================
 			COMPLETE-COMMAND
-===================================================*/
+===================================================
 
 app.post("/api/complete-command", verifySecret, async (req, res) => {
 
@@ -791,7 +791,7 @@ app.post("/api/complete-command", verifySecret, async (req, res) => {
 
   }
 
-});
+});*/
 
 /* =========================
    ➕ ADD ACCOUNT
