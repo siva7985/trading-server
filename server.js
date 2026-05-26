@@ -764,15 +764,7 @@ app.post("/api/complete-command", verifySecret, async (req, res) => {
 
     const { id } = req.body;
 
-    await Command.findByIdAndUpdate(
-
-      id,
-
-      {
-        status: "completed"
-      }
-
-    );
+    await Command.findByIdAndDelete(id);
 
     res.json({
       success: true
