@@ -713,7 +713,7 @@ app.post("/api/trade-command", verifySecret, async (req, res) => {
 
 /*===================================================
 			PENDING-COMMAND
-===================================================
+===================================================*/
 
 app.get("/api/pending-command", verifySecret, async (req, res) => {
 
@@ -758,7 +758,7 @@ app.get("/api/pending-command", verifySecret, async (req, res) => {
       success: false,
     });
   }
-});*/
+});
 
 /*===================================================
 			COMPLETE-COMMAND
