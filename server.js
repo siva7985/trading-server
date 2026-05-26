@@ -633,6 +633,9 @@ const CommandSchema = new mongoose.Schema({
   },
 
   ticket: Number,
+  
+  sl: Number,
+  tp: Number,
 
   status: {
     type: String,
@@ -1187,7 +1190,7 @@ app.get("/api/data", auth, async (req, res) => {
 /* =========================
    📌 EA UPDATE-SETTINGS
 ========================= */
-app.post("/api/update-settings", async (req, res) => {
+app.post("/api/update-settings", auth, async (req, res) => {
 
   try {
 
@@ -1326,19 +1329,30 @@ app.post("/api/modify-trade", auth, async (req, res) => {
       tp
     } = req.body;
 
-    lastCommand[account] = {
+    await Command.create({
+
+      account,
+
       command: "MODIFY",
+
       ticket,
+
       sl,
       tp,
-      time: Date.now(),
-    };
+
+      status: "pending",
+
+      createdAt: new Date()
+
+    });
 
     res.json({
       success: true
     });
 
   } catch (e) {
+
+    console.log("MODIFY ERROR:", e);
 
     res.status(500).json({
       success: false
@@ -1359,7 +1373,31 @@ app.post("/api/send-command", auth, async (req, res) => {
 
     const { command, account, ticket } = req.body;
 
-    if (!account || !command) {
+    // ✅ CLEAN ACCOUNT
+    const cleanAccount = String(account).trim();
+
+    // ✅ CHECK USER
+    const user = await User.findById(req.user.id);
+
+    if (!user) {
+
+      return res.status(404).json({
+        error: "User not found"
+      });
+
+    }
+
+    // ✅ CHECK ACCOUNT BELONGS TO USER
+    if (!user.accounts.includes(cleanAccount)) {
+
+      return res.status(403).json({
+        error: "Unauthorized account"
+      });
+
+    }
+
+    // ✅ REQUIRED VALIDATION
+    if (!cleanAccount || !command) {
 
       return res.status(400).json({
         error: "Missing data"
@@ -1367,10 +1405,31 @@ app.post("/api/send-command", auth, async (req, res) => {
 
     }
 
+    // ✅ ALLOWED COMMANDS
+    const allowedCommands = [
+      "CLOSE",
+      "MODIFY",
+      "CLOSEALL",
+      "BUY",
+      "SELL"
+    ];
+
+    // ✅ INVALID COMMAND BLOCK
+    if (!allowedCommands.includes(command)) {
+
+      return res.status(400).json({
+        error: "Invalid command"
+      });
+
+    }
+
+    // ✅ SAVE COMMAND TO DATABASE
     await Command.create({
 
-      account,
+      account: cleanAccount,
+
       command,
+
       ticket: ticket || null,
 
       status: "pending",
@@ -1379,6 +1438,7 @@ app.post("/api/send-command", auth, async (req, res) => {
 
     });
 
+    // ✅ SUCCESS
     res.json({
       success: true
     });
@@ -1443,6 +1503,10 @@ app.get("/api/command", verifySecret, async (req, res) => {
       command: cmd.command,
 
       ticket: cmd.ticket,
+	  
+	  sl: cmd.sl,
+
+	  tp: cmd.tp,
 
       id: cmd._id
 
