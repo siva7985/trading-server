@@ -42,6 +42,14 @@ function verifySecret(req, res, next){
     next();
 }
 
+const mongoSanitize = require("express-mongo-sanitize");
+
+app.use(mongoSanitize());
+
+const helmet = require("helmet");
+
+app.use(helmet());
+
 /* =========================
    🔗 MONGODB CONNECT
 ========================= */
@@ -446,7 +454,15 @@ app.post("/api/register", async (req, res) => {
 /* =========================
    🔐 LOGIN
 ========================= */
-app.post("/api/login", async (req, res) => {
+
+const rateLimit = require("express-rate-limit");
+
+const loginLimiter = rateLimit({
+   windowMs: 15 * 60 * 1000,
+   max: 5
+});
+
+app.post("/api/login", loginLimiter, async (req, res) => {
 
   const { username, password } = req.body;
 
@@ -603,6 +619,41 @@ const TradeCommand =
       "TradeCommand",
       TradeCommandSchema,
     );
+	
+const CommandSchema = new mongoose.Schema({
+
+  account: {
+    type: String,
+    required: true
+  },
+
+  command: {
+    type: String,
+    required: true
+  },
+
+  ticket: Number,
+
+  status: {
+    type: String,
+    enum: ["pending", "processing", "completed"],
+    default: "pending"
+  },
+
+  createdAt: {
+    type: Date,
+    default: Date.now
+  }
+
+});
+
+/// ✅ AUTO DELETE AFTER 24 HOURS
+CommandSchema.index(
+  { createdAt: 1 },
+  { expireAfterSeconds: 86400 }
+);
+
+const Command = mongoose.model("Command", CommandSchema);
 
 /*=================================================
             TRADE COMMAND API
@@ -710,23 +761,30 @@ app.post("/api/complete-command", verifySecret, async (req, res) => {
 
     const { id } = req.body;
 
-    await TradeCommand.findByIdAndUpdate(
+    await Command.findByIdAndUpdate(
+
       id,
+
       {
-        status: "completed",
+        status: "completed"
       }
+
     );
 
     res.json({
-      success: true,
+      success: true
     });
 
-  } catch (e) {
+  } catch (err) {
+
+    console.log("COMPLETE COMMAND ERROR:", err);
 
     res.status(500).json({
-      success: false,
+      success: false
     });
+
   }
+
 });
 
 /* =========================
@@ -1293,52 +1351,113 @@ app.post("/api/modify-trade", auth, async (req, res) => {
 /* =========================
    📌 COMMAND API
 ========================= */
-let lastCommand = {};
 
-app.post("/api/send-command", auth, (req, res) => {
-  const { command, account, ticket } = req.body;
 
-  if (!account || !command) {
-    return res.status(400).json({ error: "Missing data" });
+app.post("/api/send-command", auth, async (req, res) => {
+
+  try {
+
+    const { command, account, ticket } = req.body;
+
+    if (!account || !command) {
+
+      return res.status(400).json({
+        error: "Missing data"
+      });
+
+    }
+
+    await Command.create({
+
+      account,
+      command,
+      ticket: ticket || null,
+
+      status: "pending",
+
+      createdAt: new Date()
+
+    });
+
+    res.json({
+      success: true
+    });
+
+  } catch (err) {
+
+    console.log("SEND COMMAND ERROR:", err);
+
+    res.status(500).json({
+      error: "Server error"
+    });
+
   }
 
-  lastCommand[account] = {
-    command,
-    account,
-    ticket: ticket || null, // 🔥 NEW
-    time: Date.now(),
-    executed: false
-  };
-
-  console.log("QUEUED:", lastCommand[account]);
-
-  res.json({ success: true });
 });
 
-app.get("/api/command", verifySecret, async(req, res) => {
-  const account = req.query.account;
+app.get("/api/command", verifySecret, async (req, res) => {
 
-  if (!account) {
-    return res.json({ command: "NONE" });
+  try {
+
+    const account = req.query.account;
+
+    if (!account) {
+
+      return res.json({
+        success: false
+      });
+
+    }
+
+    const cmd =
+      await Command.findOneAndUpdate(
+
+        {
+          account,
+          status: "pending"
+        },
+
+        {
+          status: "processing"
+        },
+
+        {
+          sort: { createdAt: 1 },
+          new: true
+        }
+
+      );
+
+    if (!cmd) {
+
+      return res.json({
+        success: false
+      });
+
+    }
+
+    res.json({
+
+      success: true,
+
+      command: cmd.command,
+
+      ticket: cmd.ticket,
+
+      id: cmd._id
+
+    });
+
+  } catch (err) {
+
+    console.log("GET COMMAND ERROR:", err);
+
+    res.status(500).json({
+      success: false
+    });
+
   }
 
-  const cmd = lastCommand[account];
-
-  if (!cmd) {
-    return res.json({ command: "NONE" });
-  }
-
-  // ⏱ allow command for 5 seconds
-  const age = Date.now() - cmd.time;
-
-  if (age > 5000) {
-    delete lastCommand[account];
-    return res.json({ command: "NONE" });
-  }
-
-  res.json(cmd);
-  
-  delete lastCommand[account];
 });
 
 function isValidAccount(account) {
