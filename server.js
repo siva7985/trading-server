@@ -1466,7 +1466,7 @@ app.get("/api/command", verifySecret, async (req, res) => {
 
   try {
 	  
-	console.log("REQ BODY =", req.body);
+	console.log("REQ QUERY =", req.query);
 
     const account = req.query.account;
 
