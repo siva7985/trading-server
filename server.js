@@ -31,7 +31,10 @@ const SECRET = process.env.JWT_SECRET;
 
 function verifySecret(req, res, next){
 
-    const secret = req.body.secret || req.query.secret;
+    const secret =
+        req.headers.secret ||
+        req.body.secret ||
+        req.query.secret;
 
     if(secret !== SECRET_KEY){
 
