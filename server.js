@@ -1421,7 +1421,7 @@ app.get("/api/command", verifySecret, async (req, res) => {
 
 });
 
-app.post("/api/ack", verifySecret, async (req, res) => {
+app.get("/api/ack", verifySecret, async (req, res) => {
 
   try {
 
