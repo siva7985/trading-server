@@ -635,7 +635,13 @@ const CommandSchema = new mongoose.Schema({
     type: String,
     required: true
   },
+  
+  symbol: String,
 
+  lot: Number,
+
+  price: Number,
+  
   ticket: Number,
   
   sl: Number,
@@ -1246,7 +1252,14 @@ app.post("/api/send-command", auth, async (req, res) => {
 	  
 	console.log("SEND COMMAND BODY =", req.body);
 
-    const { command, account, ticket } = req.body;
+    const {
+		  command,
+		  account,
+		  ticket,
+		  symbol,
+		  lot,
+		  price
+		} = req.body;
 
     // ✅ CLEAN ACCOUNT
     const cleanAccount = String(account).trim();
@@ -1303,17 +1316,23 @@ app.post("/api/send-command", auth, async (req, res) => {
     // ✅ SAVE COMMAND TO DATABASE
     await Command.create({
 
-      account: cleanAccount,
+	  account: cleanAccount,
 
-      command,
+	  command,
 
-      ticket: ticket || null,
+	  symbol,
 
-      status: "pending",
+	  lot,
 
-      createdAt: new Date()
+	  price,
 
-    });
+	  ticket: ticket || null,
+
+	  status: "pending",
+
+	  createdAt: new Date()
+
+	});
 
     // ✅ SUCCESS
     res.json({
@@ -1365,13 +1384,26 @@ app.get("/api/command", verifySecret, async (req, res) => {
     console.log("SENDING COMMAND =", cmd);
 
     res.json({
-      success: true,
-      command: cmd.command,
-      ticket: cmd.ticket,
-      sl: cmd.sl,
-      tp: cmd.tp,
-      id: cmd._id
-    });
+
+		  success: true,
+
+		  command: cmd.command,
+
+		  symbol: cmd.symbol,
+
+		  lot: cmd.lot,
+
+		  price: cmd.price,
+
+		  ticket: cmd.ticket,
+
+		  sl: cmd.sl,
+
+		  tp: cmd.tp,
+
+		  id: cmd._id
+
+		});
 
   } catch (err) {
 
