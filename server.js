@@ -1398,31 +1398,53 @@ app.get("/api/command", verifySecret, async (req, res) => {
 });
 
 app.post("/api/ack", verifySecret, async (req, res) => {
+
   try {
-	  
-	  console.log("ACK BODY =", req.body);
-	  
+
+    console.log("ACK BODY =", req.body);
+
     const { id } = req.body;
 
     if (!id) {
-      return res.json({ success: false });
+
+      return res.json({
+        success: false,
+        error: "Missing id"
+      });
+
     }
 
     const cmd = await Command.findById(id);
 
     if (!cmd) {
-      console.log("ACK ignored - command already removed:", id);
-      return res.json({ success: true });
+
+      return res.json({
+        success: false,
+        error: "Command not found"
+      });
+
     }
 
     cmd.status = "completed";
+
     await cmd.save();
 
-    res.json({ success: true });
+    console.log("COMMAND COMPLETED =", id);
+
+    res.json({
+      success: true
+    });
+
   } catch (err) {
-    console.log("ACK ERROR:", err);
-    res.status(500).json({ success: false });
+
+    console.log("ACK ERROR =", err);
+
+    res.status(500).json({
+      success: false
+    });
+
   }
+
 });
 
 function isValidAccount(account) {
