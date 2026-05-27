@@ -1479,23 +1479,10 @@ app.get("/api/command", verifySecret, async (req, res) => {
     }
 
     const cmd =
-      await Command.findOneAndUpdate(
-
-        {
-          account,
-          status: "pending"
-        },
-
-        {
-          status: "processing"
-        },
-
-        {
-          sort: { createdAt: 1 },
-          new: true
-        }
-
-      );
+	  await Command.findOneAndDelete({
+		  account,
+		  status: "pending"
+	  }).sort({ createdAt: 1 });
 
     if (!cmd) {
 
