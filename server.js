@@ -470,7 +470,9 @@ app.post("/api/login", loginLimiter, async (req, res) => {
 
   try {
 
-    const user = await User.findOne({ username });
+    const user = await User.findOne({
+	   username: new RegExp("^" + username + "$", "i")
+	});
 
     if (!user) {
       return res.status(401).json({
@@ -660,138 +662,6 @@ CommandSchema.index(
 
 const Command = mongoose.model("Command", CommandSchema);
 
-/*=================================================
-            TRADE COMMAND API
-=================================================
-
-app.post("/api/trade-command", verifySecret, async (req, res) => {
-
-  try {
-
-    const {
-      account,
-      type,
-      symbol,
-      lot,
-	  price
-    } = req.body;
-
-    //console.log("TRADE COMMAND:", req.body);
-
-    await TradeCommand.create({
-
-      account,
-      type,
-      symbol,
-      lot,
-	  price,
-
-      status: "pending",
-
-      createdAt: new Date(),
-    });
-
-    res.json({
-
-      success: true,
-
-      message: "Trade command sent ✅",
-    });
-
-  } catch (e) {
-
-    console.log("TRADE ERROR:", e);
-
-    res.status(500).json({
-
-      success: false,
-
-      message: "Server Error ❌",
-    });
-  }
-});*/
-
-/*===================================================
-			PENDING-COMMAND
-===================================================
-
-app.get("/api/pending-command", verifySecret, async (req, res) => {
-
-  try {
-
-    const account =
-        req.query.account;
-
-    const cmd =
-	await TradeCommand.findOneAndUpdate(
-	{
-	   account,
-	   status: "pending",
-	},
-	{
-	   status: "processing",
-	},
-	{
-	   sort: { createdAt: 1 },
-	   new: true,
-	});
-
-    if (!cmd) {
-
-      return res.json({
-        success: false,
-      });
-    }
-
-    res.json({
-	  success: true,
-	  _id: cmd._id,
-	  type: cmd.type,
-	  symbol: cmd.symbol,
-	  lot: cmd.lot,
-	  price: cmd.price || 0
-	});
-
-  } catch (e) {
-
-    res.status(500).json({
-      success: false,
-    });
-  }
-});*/
-
-/*===================================================
-			COMPLETE-COMMAND
-===================================================
-
-app.post("/api/complete-command", verifySecret, async (req, res) => {
-
-  try {
-
-    const { id } = req.body;
-
-    await TradeCommand.findByIdAndUpdate(
-         id,
-         {
-            status: "completed"
-         }
-      );
-
-    res.json({
-      success: true
-    });
-
-  } catch (err) {
-
-    console.log("COMPLETE COMMAND ERROR:", err);
-
-    res.status(500).json({
-      success: false
-    });
-
-  }
-
-});*/
 
 /* =========================
    ➕ ADD ACCOUNT
@@ -1481,7 +1351,7 @@ app.get("/api/command", verifySecret, async (req, res) => {
     const cmd =
 	  await Command.findOne({
 		  account,
-		  status: "pending"
+		  status: { $in: ["pending", "processing"] }
 	  }).sort({ createdAt: 1 });
 
     if (!cmd) {
@@ -1492,8 +1362,12 @@ app.get("/api/command", verifySecret, async (req, res) => {
 
     }
 	
-	cmd.status = "processing";
-    await cmd.save();
+	if (cmd.status === "pending") {
+	   cmd.status = "processing";
+	   await cmd.save();
+	}
+	
+	console.log("SENDING COMMAND =", cmd);
 
     res.json({
 
@@ -1523,8 +1397,11 @@ app.get("/api/command", verifySecret, async (req, res) => {
 
 });
 
-app.post("/api/ack", async (req, res) => {
+app.post("/api/ack", verifySecret, async (req, res) => {
   try {
+	  
+	  console.log("ACK BODY =", req.body);
+	  
     const { id } = req.body;
 
     if (!id) {
