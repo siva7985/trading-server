@@ -1479,7 +1479,7 @@ app.get("/api/command", verifySecret, async (req, res) => {
     }
 
     const cmd =
-	  await Command.findOneAndDelete({
+	  await Command.findOne({
 		  account,
 		  status: "pending"
 	  }).sort({ createdAt: 1 });
@@ -1524,13 +1524,28 @@ app.get("/api/command", verifySecret, async (req, res) => {
 });
 
 app.post("/api/ack", async (req, res) => {
-  const { id } = req.body;
+  try {
+    const { id } = req.body;
 
-  await Command.findByIdAndUpdate(id, {
-    status: "completed"
-  });
+    if (!id) {
+      return res.json({ success: false });
+    }
 
-  res.json({ success: true });
+    const cmd = await Command.findById(id);
+
+    if (!cmd) {
+      console.log("ACK ignored - command already removed:", id);
+      return res.json({ success: true });
+    }
+
+    cmd.status = "completed";
+    await cmd.save();
+
+    res.json({ success: true });
+  } catch (err) {
+    console.log("ACK ERROR:", err);
+    res.status(500).json({ success: false });
+  }
 });
 
 function isValidAccount(account) {
