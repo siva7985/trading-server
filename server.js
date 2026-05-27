@@ -1463,6 +1463,8 @@ app.post("/api/send-command", auth, async (req, res) => {
 app.get("/api/command", verifySecret, async (req, res) => {
 
   try {
+	  
+	console.log("REQ BODY =", req.body);
 
     const account = req.query.account;
 
