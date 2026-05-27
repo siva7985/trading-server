@@ -1491,6 +1491,9 @@ app.get("/api/command", verifySecret, async (req, res) => {
       });
 
     }
+	
+	cmd.status = "processing";
+    await cmd.save();
 
     res.json({
 
@@ -1518,6 +1521,16 @@ app.get("/api/command", verifySecret, async (req, res) => {
 
   }
 
+});
+
+app.post("/api/ack", async (req, res) => {
+  const { id } = req.body;
+
+  await Command.findByIdAndUpdate(id, {
+    status: "completed"
+  });
+
+  res.json({ success: true });
 });
 
 function isValidAccount(account) {
