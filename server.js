@@ -1335,54 +1335,42 @@ app.post("/api/send-command", auth, async (req, res) => {
 app.get("/api/command", verifySecret, async (req, res) => {
 
   try {
-	  
-	console.log("REQ QUERY =", req.query);
+
+    console.log("REQ QUERY =", req.query);
 
     const account = req.query.account;
 
     if (!account) {
-
       return res.json({
         success: false
       });
-
     }
 
-    const cmd =
-	  await Command.findOne({
-		  account,
-		  status: { $in: ["pending", "processing"] }
-	  }).sort({ createdAt: 1 });
+    const cmd = await Command.findOne({
+      account,
+      status: "pending"
+    }).sort({ createdAt: 1 });
 
     if (!cmd) {
-
       return res.json({
         success: false
       });
-
     }
-	
-	if (cmd.status === "pending") {
-	   cmd.status = "processing";
-	   await cmd.save();
-	}
-	
-	console.log("SENDING COMMAND =", cmd);
+
+    // ✅ mark processing immediately
+    cmd.status = "processing";
+
+    await cmd.save();
+
+    console.log("SENDING COMMAND =", cmd);
 
     res.json({
-
       success: true,
-
       command: cmd.command,
-
       ticket: cmd.ticket,
-	  
-	  sl: cmd.sl,
-
-	  tp: cmd.tp,
-
+      sl: cmd.sl,
+      tp: cmd.tp,
       id: cmd._id
-
     });
 
   } catch (err) {
