@@ -1410,12 +1410,14 @@ app.post("/api/send-command", auth, async (req, res) => {
 
     // ✅ ALLOWED COMMANDS
     const allowedCommands = [
-      "CLOSE_TRADE",
-      "MODIFY",
-      "CLOSEALL",
-      "BUY",
-      "SELL"
-    ];
+	  "START",
+	  "STOP",
+	  "CLOSE_ALL",
+	  "CLOSE_TRADE",
+	  "MODIFY_TRADE",
+	  "BUY",
+	  "SELL"
+	];
 
     // ✅ INVALID COMMAND BLOCK
     if (!allowedCommands.includes(command)) {
