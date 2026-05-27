@@ -713,7 +713,7 @@ app.post("/api/trade-command", verifySecret, async (req, res) => {
 
 /*===================================================
 			PENDING-COMMAND
-===================================================*/
+===================================================
 
 app.get("/api/pending-command", verifySecret, async (req, res) => {
 
@@ -758,7 +758,7 @@ app.get("/api/pending-command", verifySecret, async (req, res) => {
       success: false,
     });
   }
-});
+});*/
 
 /*===================================================
 			COMPLETE-COMMAND
@@ -1373,6 +1373,8 @@ app.post("/api/modify-trade", auth, async (req, res) => {
 app.post("/api/send-command", auth, async (req, res) => {
 
   try {
+	  
+	console.log("SEND COMMAND BODY =", req.body);
 
     const { command, account, ticket } = req.body;
 
