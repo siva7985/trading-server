@@ -1475,12 +1475,9 @@ app.post("/api/save-settings", async (req, res) => {
 
   try {
 
-    const {
-      account,
-      settings
-    } = req.body;
+    console.log("SAVE SETTINGS BODY =", req.body);
 
-    console.log("SAVE SETTINGS =", settings);
+    const { account, settings } = req.body;
 
     if (!account || !settings) {
 
@@ -1490,18 +1487,20 @@ app.post("/api/save-settings", async (req, res) => {
       });
     }
 
-    await Account.updateOne(
+    const updated = await User.updateOne(
 
       {
-        account: account
+        accounts: account
       },
 
       {
         $set: {
-          eaSettings: settings
+          [`eaSettings.${account}`]: settings
         }
       }
     );
+
+    console.log("UPDATE RESULT =", updated);
 
     res.json({
       success: true
@@ -1512,11 +1511,12 @@ app.post("/api/save-settings", async (req, res) => {
     console.log("SAVE SETTINGS ERROR =", err);
 
     res.status(500).json({
-      success: false
+      success: false,
+      error: err.message
     });
   }
 });
-
+});
 function isValidAccount(account) {
   return /^[0-9]{9}$/.test(account); // ✅ exactly 9 digits only
 }
