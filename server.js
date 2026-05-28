@@ -812,7 +812,10 @@ app.post("/api/update", verifySecret, async (req, res) => {
       prices,
       trades,
 
-      settings: existingData?.settings || [],
+      settings:
+		  existingData?.settings?.length > 0
+			? existingData.settings
+			: settings || [],
 
       eaRunning,
       mt5Connected,
