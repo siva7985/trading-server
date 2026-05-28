@@ -766,7 +766,9 @@ app.post("/api/reset-password", async (req, res) => {
 app.post("/api/update", verifySecret, async (req, res) => {
 
   //console.log(req.body);
-
+  
+  console.log(JSON.stringify(req.body, null, 2));
+  
   const {
     account,
     balance,
