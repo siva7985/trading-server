@@ -1471,6 +1471,52 @@ app.get("/api/ack", verifySecret, async (req, res) => {
 
 });
 
+app.post("/api/save-settings", async (req, res) => {
+
+  try {
+
+    const {
+      account,
+      settings
+    } = req.body;
+
+    console.log("SAVE SETTINGS =", settings);
+
+    if (!account || !settings) {
+
+      return res.json({
+        success: false,
+        error: "Missing data"
+      });
+    }
+
+    await Account.updateOne(
+
+      {
+        account: account
+      },
+
+      {
+        $set: {
+          eaSettings: settings
+        }
+      }
+    );
+
+    res.json({
+      success: true
+    });
+
+  } catch (err) {
+
+    console.log("SAVE SETTINGS ERROR =", err);
+
+    res.status(500).json({
+      success: false
+    });
+  }
+});
+
 function isValidAccount(account) {
   return /^[0-9]{9}$/.test(account); // ✅ exactly 9 digits only
 }
