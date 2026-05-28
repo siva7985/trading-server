@@ -1519,6 +1519,41 @@ app.post("/api/save-settings", async (req, res) => {
   }
 });
 
+/*===========================================
+      Delete Old Commands from DB
+===========================================*/
+setInterval(async () => {
+
+  try {
+
+    const result = await Command.deleteMany({
+
+      status: "completed",
+
+      createdAt: {
+        $lt: new Date(Date.now() - 86400000)
+      }
+
+    });
+
+    console.log(
+      "Old commands deleted:",
+      result.deletedCount
+    );
+
+  } catch (err) {
+
+    console.log(
+      "Cleanup error:",
+      err.message
+    );
+  }
+
+}, 60 * 60 * 1000);
+//============================================
+
+
+
 function isValidAccount(account) {
   return /^[0-9]{9}$/.test(account); // ✅ exactly 9 digits only
 }
