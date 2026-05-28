@@ -1518,7 +1518,7 @@ app.post("/api/save-settings", async (req, res) => {
     });
   }
 });
-});
+
 function isValidAccount(account) {
   return /^[0-9]{9}$/.test(account); // ✅ exactly 9 digits only
 }
