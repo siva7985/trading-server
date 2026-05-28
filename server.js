@@ -793,10 +793,10 @@ app.post("/api/update", verifySecret, async (req, res) => {
   // ✅ KEEP EXISTING SETTINGS
   const existingData = await Data.findOne({ account });
 
-  const finalSettings =
+  /*const finalSettings =
 	  settings && settings.length > 0
 		? settings
-		: existingData?.settings || [];
+		: existingData?.settings || [];*/
 
   await Data.findOneAndUpdate(
     { userId: user._id, account },
@@ -812,7 +812,7 @@ app.post("/api/update", verifySecret, async (req, res) => {
       prices,
       trades,
 
-      settings: finalSettings,
+      settings: existingData?.settings || [],
 
       eaRunning,
       mt5Connected,
