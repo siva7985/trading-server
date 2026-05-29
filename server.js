@@ -288,6 +288,8 @@ app.get("/api/profile", auth, async (req, res) => {
 app.post("/api/ping-user", auth, async (req, res) => {
 
   try {
+	  
+	console.log("PING RECEIVED FROM =", req.user.id);
 
     await User.findByIdAndUpdate(
 
