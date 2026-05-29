@@ -288,24 +288,34 @@ app.get("/api/profile", auth, async (req, res) => {
 app.post("/api/ping-user", auth, async (req, res) => {
 
   try {
-	  
-	console.log("PING RECEIVED FROM =", req.user.id);
 
-    await User.findByIdAndUpdate(
+    console.log("PING RECEIVED FROM =", req.user.id);
 
-      req.user.id,
+    const updatedUser =
+      await User.findByIdAndUpdate(
 
-      {
-        lastSeen: new Date()
-      }
+        req.user.id,
 
-    );
+        {
+          $set: {
+            lastSeen: new Date()
+          }
+        },
+
+        {
+          new: true
+        }
+      );
+
+    console.log("UPDATED USER =", updatedUser);
 
     res.json({
       success: true
     });
 
   } catch (e) {
+
+    console.log("PING ERROR =", e);
 
     res.status(500).json({
       success: false
