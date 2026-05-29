@@ -1135,7 +1135,8 @@ app.post("/api/update-settings", auth, async (req, res) => {
 		return {
 		  name: item.name,
 		  type: item.type,
-		  value: newValue
+		  value: newValue,
+		  options: item.options || []
 		};
 	  }
 
