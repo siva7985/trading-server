@@ -1123,6 +1123,12 @@ app.post("/api/update-settings", auth, async (req, res) => {
 		}
 
 		// NUMBER SUPPORT
+		else if (item.type === "dropdown") {
+
+		  newValue = String(newValue);
+
+		}
+
 		else {
 
 		  newValue = Number(newValue);
