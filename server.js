@@ -111,6 +111,12 @@ const UserSchema = new mongoose.Schema({
 	  type: Boolean,
 	  default: false,
 	},
+	
+	/// ✅ USER ONLINE TRACKING
+  lastSeen: {
+    type: Date,
+    default: null
+  },
 });
 
 const User = mongoose.model("User", UserSchema);
@@ -244,7 +250,15 @@ app.get("/api/admin/users", auth, async (req, res) => {
     return res.status(403).json({ error: "Access denied" });
   }
 
-  const users = await User.find({ role: "user" });
+  const users = await User.find(
+	  { role: "user" },
+	  {
+		username: 1,
+		accounts: 1,
+		isActive: 1,
+		lastSeen: 1
+	  }
+	);
 
   res.json(users);
 });
@@ -269,6 +283,34 @@ app.get("/api/profile", auth, async (req, res) => {
   } catch (err) {
     res.status(500).json({ error: "Server error" });
   }
+});
+
+app.post("/api/ping-user", auth, async (req, res) => {
+
+  try {
+
+    await User.findByIdAndUpdate(
+
+      req.user.id,
+
+      {
+        lastSeen: new Date()
+      }
+
+    );
+
+    res.json({
+      success: true
+    });
+
+  } catch (e) {
+
+    res.status(500).json({
+      success: false
+    });
+
+  }
+
 });
 
 /* =========================
