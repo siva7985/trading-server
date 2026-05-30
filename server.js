@@ -393,17 +393,24 @@ app.get("/api/admin/user-data/:userId", auth, async (req, res) => {
 	});
 
   const result = user.accounts.map(acc => {
-    const d = data.find(x => x.account === acc);
+	  const d = data.find(
+		x => x.account === acc.account
+	  );
 
-    return {
-	  userId: user._id,
-      account: acc,
-      balance: d?.balance || 0,
-      equity: d?.equity || 0,
-      profit: d?.profit || 0,
-      trades: d?.trades || []
-    };
-  });
+	  return {
+		account: acc.account,
+		accountName: acc.accountName || "",
+		accountType: acc.accountType || "",
+		currency: acc.currency || "",
+		platform: acc.platform || "",
+		server: acc.server || "",
+
+		balance: d?.balance || 0,
+		equity: d?.equity || 0,
+		profit: d?.profit || 0,
+		trades: d?.trades || []
+	  };
+	});
 
   res.json({
     username: user.username,
