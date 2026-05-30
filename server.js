@@ -990,7 +990,7 @@ app.post("/api/update-account", auth, async (req, res) => {
 	}
 
     // ❌ Prevent duplicate across users
-    const existing = await User.findOne({ accounts: newAccount });
+    const existing = await User.findOne({ "accounts.account": newAccount });
     if (existing) {
       return res.status(400).json({ error: "Account already used" });
     }
@@ -1127,9 +1127,15 @@ app.post("/api/delete-account", auth, async (req, res) => {
 
     const user = await User.findById(userId);
 
-    if (!user.accounts.includes(account)) {
-      return res.status(400).json({ error: "Account not found" });
-    }
+    const exists = user.accounts.some(
+	  a => a.account === account
+	);
+
+	if (!exists) {
+	  return res.status(400).json({
+		error: "Account not found"
+	  });
+	}
 
     // ✅ Remove from user only
     user.accounts =
@@ -1139,7 +1145,7 @@ app.post("/api/delete-account", auth, async (req, res) => {
     await user.save();
 
     // ✅ Optional: remove its data (recommended)
-    await Data.deleteOne({ account });
+    await Data.deleteMany({ account });
 
     res.json({ message: "Account removed" });
 
