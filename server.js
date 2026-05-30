@@ -81,7 +81,47 @@ const UserSchema = new mongoose.Schema({
 
   username: { type: String},
   password: String,
-  accounts: [String],
+  
+  accounts: [
+	  {
+		account: {
+		  type: String,
+		  required: true
+		},
+
+		accountName: {
+		  type: String,
+		  default: ""
+		},
+
+		accountType: {
+		  type: String,
+		  enum: ["Demo", "Real"],
+		  default: "Real"
+		},
+
+		currency: {
+		  type: String,
+		  default: "USD"
+		},
+
+		platform: {
+		  type: String,
+		  enum: ["MT4", "MT5"],
+		  default: "MT5"
+		},
+
+		server: {
+		  type: String,
+		  default: ""
+		},
+
+		createdAt: {
+		  type: Date,
+		  default: Date.now
+		}
+	  }
+	],
 
   otp: String,
   otpExpiry: Date,
