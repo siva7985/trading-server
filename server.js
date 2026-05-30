@@ -69,6 +69,7 @@ mongoose.connect(process.env.MONGO_URI)
   console.log(err);
 });
 
+
 /* =========================
    📦 USER MODEL
 ========================= */
@@ -384,9 +385,12 @@ app.get("/api/admin/user-data/:userId", auth, async (req, res) => {
     return res.status(404).json({ error: "User not found" });
   }
 
-  const data = await Data.find({
-    account: { $in: user.accounts }
-  });
+  const accountNumbers =
+	  user.accounts.map(a => a.account);
+
+	const data = await Data.find({
+	  account: { $in: accountNumbers }
+	});
 
   const result = user.accounts.map(acc => {
     const d = data.find(x => x.account === acc);
@@ -772,7 +776,14 @@ const Command = mongoose.model("Command", CommandSchema);
 ========================= */
 app.post("/api/add-account", auth, async (req, res) => {
   const userId = req.user.id;
-  const { account } = req.body;
+  const {
+	  account,
+	  accountName,
+	  accountType,
+	  currency,
+	  platform,
+	  server
+	} = req.body;
 
   if (!account) {
     return res.status(400).json({ error: "Account required" });
@@ -787,17 +798,34 @@ app.post("/api/add-account", auth, async (req, res) => {
 
   const user = await User.findById(userId);
 
-  if (user.accounts.includes(account)) {
-    return res.status(400).json({ error: "Already added" });
-  }
+  const exists =
+	  user.accounts.some(
+		a => a.account === account
+	  );
+
+	if (exists) {
+	  return res.status(400).json({
+		error:"Already added"
+	  });
+	}
 
   // ❗ Prevent same account in multiple users
-  const existing = await User.findOne({ accounts: account });
+  const existing =
+	 await User.findOne({
+	   "accounts.account": account
+	 });
   if (existing) {
     return res.status(400).json({ error: "Account already used by another user" });
   }
 
-  user.accounts.push(account);
+  user.accounts.push({
+	  account,
+	  accountName,
+	  accountType,
+	  currency,
+	  platform,
+	  server
+	});
   await user.save();
 
   res.json({ message: "Account added successfully" });
@@ -878,7 +906,10 @@ app.post("/api/update", verifySecret, async (req, res) => {
     ping,
   } = req.body;
 
-  const user = await User.findOne({ accounts: account });
+  const user =
+	 await User.findOne({
+	   "accounts.account": account
+	 });
 
   if (!user) {
     return res.status(403).send("Account not linked");
@@ -947,9 +978,16 @@ app.post("/api/update-account", auth, async (req, res) => {
 
     const user = await User.findById(userId);
 
-    if (!user.accounts.includes(oldAccount)) {
-      return res.status(400).json({ error: "Old account not found" });
-    }
+    const accountObj =
+	 user.accounts.find(
+	   a => a.account === oldAccount
+	 );
+
+	if (!accountObj) {
+	  return res.status(400).json({
+		error:"Account not found"
+	  });
+	}
 
     // ❌ Prevent duplicate across users
     const existing = await User.findOne({ accounts: newAccount });
@@ -958,9 +996,18 @@ app.post("/api/update-account", auth, async (req, res) => {
     }
 
     // ✅ Replace account
-    user.accounts = user.accounts.map(acc =>
-      acc === oldAccount ? newAccount : acc
-    );
+    user.accounts =
+	 user.accounts.map(acc => {
+
+	   if (
+		 acc.account === oldAccount
+	   ) {
+		 acc.account =
+		   newAccount;
+	   }
+
+	   return acc;
+	 });
 
     await user.save();
 
@@ -1085,7 +1132,10 @@ app.post("/api/delete-account", auth, async (req, res) => {
     }
 
     // ✅ Remove from user only
-    user.accounts = user.accounts.filter(acc => acc !== account);
+    user.accounts =
+	 user.accounts.filter(
+	   acc => acc.account !== account
+	 );
     await user.save();
 
     // ✅ Optional: remove its data (recommended)
@@ -1113,47 +1163,74 @@ app.get("/api/data", auth, async (req, res) => {
 	  });
 	}
 
-  const data = await Data.find({
-    account: { $in: user.accounts }
-  });
+  const accountNumbers =
+	 user.accounts.map(
+	   a => a.account
+	 );
 
-  const result = user.accounts.map(acc => {
-    const d = data.find(x => x.account === acc);
+	const data =
+	 await Data.find({
+	   account: {
+		 $in: accountNumbers
+	   }
+	 });
 
-    const now = Date.now();
+  const result = user.accounts.map(accObj => {
 
-	const lastUpdate = d?.lastUpdate
-	  ? new Date(d.lastUpdate).getTime()
-	  : 0;
+	  const accountNumber = accObj.account;
 
-	const diff = now - lastUpdate;
+	  const d = data.find(
+		x => x.account === accountNumber
+	  );
 
-	/// 30 seconds timeout
-	const isLive = diff < 30000;
+	  const now = Date.now();
 
-	return {
-	  account: acc,
+	  const lastUpdate = d?.lastUpdate
+		? new Date(d.lastUpdate).getTime()
+		: 0;
 
-	  balance: d?.balance || null,
-	  equity: d?.equity || null,
-	  profit: d?.profit || null,
-	  
-	  prices: d?.prices || {},
+	  const diff = now - lastUpdate;
 
-	  eaRunning: isLive && d?.eaRunning,
-	  mt5Connected: isLive && d?.mt5Connected,
-	  vpsOnline: isLive && d?.vpsOnline,
+	  /// 30 seconds timeout
+	  const isLive = diff < 30000;
 
-	  ping: isLive ? d?.ping || 0 : 0,
+	  return {
 
-	  lastUpdate: d?.lastUpdate || null,
+		account: accountNumber,
 
-	  trades: d?.trades || [],
-	  
-	  settings: d?.settings || []
-	};
-  });
+		accountName: accObj.accountName || "",
 
+		accountType: accObj.accountType || "",
+
+		currency: accObj.currency || "",
+
+		platform: accObj.platform || "",
+
+		server: accObj.server || "",
+
+		balance: d?.balance || null,
+
+		equity: d?.equity || null,
+
+		profit: d?.profit || null,
+
+		prices: d?.prices || {},
+
+		eaRunning: isLive && d?.eaRunning,
+
+		mt5Connected: isLive && d?.mt5Connected,
+
+		vpsOnline: isLive && d?.vpsOnline,
+
+		ping: isLive ? (d?.ping || 0) : 0,
+
+		lastUpdate: d?.lastUpdate || null,
+
+		trades: d?.trades || [],
+
+		settings: d?.settings || []
+	  };
+	});
   res.json({
 	  username: user.username,
 	  fullName: user.fullName,
@@ -1383,13 +1460,16 @@ app.post("/api/send-command", auth, async (req, res) => {
     }
 
     // ✅ CHECK ACCOUNT BELONGS TO USER
-    if (!user.accounts.includes(cleanAccount)) {
+    const hasAccount =
+	 user.accounts.some(
+	   a => a.account === cleanAccount
+	 );
 
-      return res.status(403).json({
-        error: "Unauthorized account"
-      });
-
-    }
+	if (!hasAccount) {
+	  return res.status(403).json({
+		error:"Unauthorized account"
+	  });
+	}
 
     // ✅ REQUIRED VALIDATION
     if (!cleanAccount || !command) {
@@ -1652,7 +1732,6 @@ setInterval(async () => {
 
 }, 60 * 60 * 1000);
 //============================================
-
 
 
 function isValidAccount(account) {
