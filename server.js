@@ -298,16 +298,40 @@ app.get("/api/admin/users", auth, async (req, res) => {
   }
 
   const users = await User.find(
-	  { role: "user" },
-	  {
-		username: 1,
-		accounts: 1,
-		isActive: 1,
-		lastSeen: 1
-	  }
-	);
+    { role: "user" }
+  );
 
-  res.json(users);
+  const result = [];
+
+  for (const user of users) {
+
+    const accountNumbers =
+      user.accounts.map(a => a.account);
+
+    const data =
+      await Data.find({
+        account: { $in: accountNumbers }
+      });
+
+    const now = Date.now();
+
+    boolIsOnline = data.some(d => {
+
+      if (!d.lastUpdate) return false;
+
+      const diff =
+        now - new Date(d.lastUpdate).getTime();
+
+      return diff < 30000; // 30 seconds
+    });
+
+    result.push({
+      ...user.toObject(),
+      tradingOnline: boolIsOnline
+    });
+  }
+
+  res.json(result);
 });
 
 app.post("/api/admin/delete-user", auth, async (req, res) => {
