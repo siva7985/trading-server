@@ -145,7 +145,7 @@ const UserSchema = new mongoose.Schema({
 	  type: String,
 	  enum: ["ACTIVE", "INACTIVE", "SUSPENDED"],
 	  default: "INACTIVE"
-	}
+	},
 	
 	suspendReason: {
 	  type: String,
