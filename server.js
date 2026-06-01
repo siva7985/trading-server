@@ -402,7 +402,6 @@ app.post("/api/ping-user", auth, async (req, res) => {
 
 app.get("/api/admin/user-data/:userId", auth, async (req, res) => {
 
-  // 🔒 Only admin allowed
   if (req.user.role !== "admin") {
     return res.status(403).json({ error: "Access denied" });
   }
@@ -416,34 +415,55 @@ app.get("/api/admin/user-data/:userId", auth, async (req, res) => {
   }
 
   const accountNumbers =
-	  user.accounts.map(a => a.account);
+    user.accounts.map(a => a.account);
 
-	const data = await Data.find({
-	  account: { $in: accountNumbers }
-	});
+  const data = await Data.find({
+    account: { $in: accountNumbers }
+  });
+
+  const now = Date.now();
+
+  const tradingOnline = data.some(d => {
+
+    if (!d.lastUpdate) return false;
+
+    const diff =
+      now - new Date(d.lastUpdate).getTime();
+
+    return diff < 30000; // 30 seconds
+  });
 
   const result = user.accounts.map(acc => {
-	  const d = data.find(
-		x => x.account === acc.account
-	  );
 
-	  return {
-		account: acc.account,
-		accountName: acc.accountName || "",
-		accountType: acc.accountType || "",
-		currency: acc.currency || "",
-		platform: acc.platform || "",
-		server: acc.server || "",
+    const d = data.find(
+      x => x.account === acc.account
+    );
 
-		balance: d?.balance || 0,
-		equity: d?.equity || 0,
-		profit: d?.profit || 0,
-		trades: d?.trades || []
-	  };
-	});
+    return {
+      account: acc.account,
+      accountName: acc.accountName || "",
+      accountType: acc.accountType || "",
+      currency: acc.currency || "",
+      platform: acc.platform || "",
+      server: acc.server || "",
+
+      balance: d?.balance || 0,
+      equity: d?.equity || 0,
+      profit: d?.profit || 0,
+      trades: d?.trades || []
+    };
+  });
 
   res.json({
+
+    fullName: user.fullName,
+    email: user.email,
     username: user.username,
+
+    isActive: user.isActive,
+
+    tradingOnline: tradingOnline,
+
     accounts: result
   });
 });
