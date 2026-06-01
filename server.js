@@ -60,10 +60,10 @@ app.use(helmet());
    🔗 MONGODB CONNECT
 ========================= */
 mongoose.connect(process.env.MONGO_URI)
-.then(() => {
+.then(async () => {
   console.log("MongoDB Connected ✅");
-})
 
+})
 .catch(err => {
   console.log("MongoDB ERROR ❌");
   console.log(err);
@@ -139,6 +139,12 @@ const UserSchema = new mongoose.Schema({
 	isActive: {
 	  type: Boolean,
 	  default: true
+	},
+
+    accountStatus: {
+	  type: String,
+	  enum: ["ACTIVE", "INACTIVE"],
+	  default: "ACTIVE"
 	},	
 	
 	suspendReason: {
