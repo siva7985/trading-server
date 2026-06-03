@@ -325,10 +325,17 @@ app.get("/api/admin/users", auth, async (req, res) => {
       return diff < 30000; // 30 seconds
     });
 
-    result.push({
-      ...user.toObject(),
-      tradingOnline: boolIsOnline
-    });
+    const userOnline =
+	  user.lastSeen &&
+	  (Date.now() - new Date(user.lastSeen).getTime()) < 60000;
+
+	result.push({
+	  ...user.toObject(),
+
+	  userOnline: userOnline,
+
+	  tradingOnline: boolIsOnline
+	});
   }
 
   res.json(result);
@@ -439,19 +446,26 @@ app.get("/api/admin/user-data/:userId", auth, async (req, res) => {
       x => x.account === acc.account
     );
 
-    return {
-      account: acc.account,
-      accountName: acc.accountName || "",
-      accountType: acc.accountType || "",
-      currency: acc.currency || "",
-      platform: acc.platform || "",
-      server: acc.server || "",
+    const isOnline =
+	  d?.lastUpdate &&
+	  (Date.now() - new Date(d.lastUpdate).getTime()) < 30000;
 
-      balance: d?.balance || 0,
-      equity: d?.equity || 0,
-      profit: d?.profit || 0,
-      trades: d?.trades || []
-    };
+	return {
+	  account: acc.account,
+	  accountName: acc.accountName || "",
+	  accountType: acc.accountType || "",
+	  currency: acc.currency || "",
+	  platform: acc.platform || "",
+	  server: acc.server || "",
+
+	  balance: d?.balance || 0,
+	  equity: d?.equity || 0,
+	  profit: d?.profit || 0,
+
+	  tradingOnline: isOnline,
+
+	  trades: d?.trades || []
+	};
   });
 
   res.json({
