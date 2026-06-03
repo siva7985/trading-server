@@ -467,6 +467,17 @@ app.get("/api/admin/user-data/:userId", auth, async (req, res) => {
 	  trades: d?.trades || []
 	};
   });
+  
+  console.log("ACCOUNT DATA =", data);
+	console.log("NOW =", now);
+
+	data.forEach(d => {
+	  console.log(
+		d.account,
+		d.lastUpdate,
+		now - new Date(d.lastUpdate).getTime()
+	  );
+	});
 
   res.json({
 
