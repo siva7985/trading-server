@@ -478,6 +478,8 @@ app.get("/api/admin/user-data/:userId", auth, async (req, res) => {
 		now - new Date(d.lastUpdate).getTime()
 	  );
 	});
+	
+ console.log("FINAL TRADING ONLINE =", tradingOnline);
 
   res.json({
 
