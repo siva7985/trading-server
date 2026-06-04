@@ -308,8 +308,8 @@ app.get("/api/admin/users", auth, async (req, res) => {
     const accountNumbers =
       user.accounts.map(a => a.account);
 	  
-	console.log("USER:", user.username);
-	console.log("ACCOUNTS:", accountNumbers);
+	//console.log("USER:", user.username);
+	//console.log("ACCOUNTS:", accountNumbers);
 	
 	const data =
       await Data.find({
@@ -338,6 +338,18 @@ app.get("/api/admin/users", auth, async (req, res) => {
 
       return diff < 120000; // 30 seconds
     });
+	
+	/*console.log(
+		  "USER:",
+		  user.username,
+		  "TRADING ONLINE:",
+		  boolIsOnline
+		);
+		
+	console.log(
+	  "DATA COUNT:",
+	  data.length
+	);*/
 
     const userOnline =
 	  user.lastSeen &&
