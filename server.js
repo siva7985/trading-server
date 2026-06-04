@@ -316,7 +316,7 @@ app.get("/api/admin/users", auth, async (req, res) => {
         account: { $in: accountNumbers }
       });
 
-	data.forEach(d => {
+	/*data.forEach(d => {
 	  console.log(
 		"ACCOUNT:",
 		d.account,
@@ -325,7 +325,7 @@ app.get("/api/admin/users", auth, async (req, res) => {
 		"DIFF:",
 		Date.now() - new Date(d.lastUpdate).getTime()
 	  );
-	});
+	});*/
 
     const now = Date.now();
 
@@ -396,7 +396,7 @@ app.post("/api/ping-user", auth, async (req, res) => {
 
   try {
 
-    console.log("PING RECEIVED FROM =", req.user.id);
+    //console.log("PING RECEIVED FROM =", req.user.id);
 
     const updatedUser =
       await User.findByIdAndUpdate(
@@ -414,7 +414,7 @@ app.post("/api/ping-user", auth, async (req, res) => {
         }
       );
 
-    console.log("UPDATED USER =", updatedUser);
+    //console.log("UPDATED USER =", updatedUser);
 
     res.json({
       success: true
@@ -497,7 +497,7 @@ app.get("/api/admin/user-data/:userId", auth, async (req, res) => {
 	};
   });
   
-  console.log("ACCOUNT DATA =", data);
+  /*console.log("ACCOUNT DATA =", data);
 	console.log("NOW =", now);
 
 	data.forEach(d => {
@@ -506,9 +506,9 @@ app.get("/api/admin/user-data/:userId", auth, async (req, res) => {
 		d.lastUpdate,
 		now - new Date(d.lastUpdate).getTime()
 	  );
-	});
+	});*/
 	
- console.log("FINAL TRADING ONLINE =", tradingOnline);
+ //console.log("FINAL TRADING ONLINE =", tradingOnline);
 
   res.json({
 
@@ -1002,7 +1002,7 @@ app.post("/api/update", verifySecret, async (req, res) => {
 
   //console.log(req.body);
   
-  console.log(JSON.stringify(req.body, null, 2));
+  //console.log(JSON.stringify(req.body, null, 2));
   
   const {
     account,
@@ -1421,8 +1421,8 @@ app.post("/api/update-settings", auth, async (req, res) => {
 
     const { account, settings } = req.body;
 
-    console.log("ACCOUNT:", account);
-    console.log("NEW SETTINGS:", settings);
+    //console.log("ACCOUNT:", account);
+    //console.log("NEW SETTINGS:", settings);
 
     const data = await Data.findOne({ account });
 
@@ -1434,7 +1434,7 @@ app.post("/api/update-settings", auth, async (req, res) => {
       });
     }
 
-    console.log("OLD SETTINGS:", data.settings);
+    //console.log("OLD SETTINGS:", data.settings);
 
     const updatedSettings = data.settings.map(item => {
 
@@ -1603,7 +1603,7 @@ app.post("/api/send-command", auth, async (req, res) => {
 
   try {
 	  
-	console.log("SEND COMMAND BODY =", req.body);
+	//console.log("SEND COMMAND BODY =", req.body);
 
     const {
 		  command,
@@ -1777,7 +1777,7 @@ app.get("/api/ack", verifySecret, async (req, res) => {
 
   try {
 
-    console.log("ACK BODY =", req.body);
+    //console.log("ACK BODY =", req.body);
 
     const { id } = req.body;
 
@@ -1827,7 +1827,7 @@ app.post("/api/save-settings", async (req, res) => {
 
   try {
 
-    console.log("SAVE SETTINGS BODY =", req.body);
+    //console.log("SAVE SETTINGS BODY =", req.body);
 
     const { account, settings } = req.body;
 
