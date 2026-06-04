@@ -1048,64 +1048,114 @@ app.post("/api/update", verifySecret, async (req, res) => {
 app.post("/api/update-account", auth, async (req, res) => {
   try {
     const userId = req.user.id;
-    const { oldAccount, newAccount } = req.body;
 
-    if (!oldAccount || !newAccount) {
-      return res.status(400).json({ error: "Missing fields" });
+    const {
+      oldAccount,
+      newAccount,
+      accountName,
+      accountType
+    } = req.body;
+
+    // Validate required fields
+    if (
+      !oldAccount ||
+      !newAccount ||
+      !accountName ||
+      !accountType
+    ) {
+      return res.status(400).json({
+        error: "Missing fields"
+      });
     }
-	
-	if (!isValidAccount(newAccount)) {
-	  return res.status(400).json({
-		error: "Account must be exactly 9 digits (numbers only)"
-	  });
-	}
+
+    // Validate account number
+    if (!isValidAccount(newAccount)) {
+      return res.status(400).json({
+        error: "Account must be exactly 9 digits (numbers only)"
+      });
+    }
+
+    // Validate account type
+    if (
+      accountType !== "Real" &&
+      accountType !== "Demo"
+    ) {
+      return res.status(400).json({
+        error: "Invalid account type"
+      });
+    }
 
     const user = await User.findById(userId);
 
-    const accountObj =
-	 user.accounts.find(
-	   a => a.account === oldAccount
-	 );
-
-	if (!accountObj) {
-	  return res.status(400).json({
-		error:"Account not found"
-	  });
-	}
-
-    // ❌ Prevent duplicate across users
-    const existing = await User.findOne({ "accounts.account": newAccount });
-    if (existing) {
-      return res.status(400).json({ error: "Account already used" });
+    if (!user) {
+      return res.status(404).json({
+        error: "User not found"
+      });
     }
 
-    // ✅ Replace account
-    user.accounts =
-	 user.accounts.map(acc => {
+    const accountObj = user.accounts.find(
+      acc => acc.account === oldAccount
+    );
 
-	   if (
-		 acc.account === oldAccount
-	   ) {
-		 acc.account =
-		   newAccount;
-	   }
+    if (!accountObj) {
+      return res.status(400).json({
+        error: "Account not found"
+      });
+    }
 
-	   return acc;
-	 });
+    // Prevent duplicate account numbers
+    if (oldAccount !== newAccount) {
+
+      const existing = await User.findOne({
+        "accounts.account": newAccount
+      });
+
+      if (existing) {
+        return res.status(400).json({
+          error: "Account already used"
+        });
+      }
+    }
+
+    // Update account
+    user.accounts = user.accounts.map(acc => {
+
+      if (acc.account === oldAccount) {
+
+        acc.account = newAccount;
+        acc.accountName = accountName;
+        acc.accountType = accountType;
+      }
+
+      return acc;
+    });
 
     await user.save();
 
-    // ✅ Also update Data collection
+    // Update Data collection
     await Data.updateMany(
       { account: oldAccount },
-      { account: newAccount }
+      {
+        $set: {
+          account: newAccount,
+          accountName: accountName,
+          accountType: accountType
+        }
+      }
     );
 
-    res.json({ message: "Account updated successfully" });
+    res.json({
+      success: true,
+      message: "Account updated successfully"
+    });
 
   } catch (err) {
-    console.log("UPDATE ERROR:", err);
-    res.status(500).json({ error: "Server error" });
+
+    console.log("UPDATE ACCOUNT ERROR:", err);
+
+    res.status(500).json({
+      error: "Server error"
+    });
   }
 });
 
