@@ -310,6 +310,11 @@ app.get("/api/admin/users", auth, async (req, res) => {
 	  
 	console.log("USER:", user.username);
 	console.log("ACCOUNTS:", accountNumbers);
+	
+	const data =
+      await Data.find({
+        account: { $in: accountNumbers }
+      });
 
 	data.forEach(d => {
 	  console.log(
@@ -321,11 +326,6 @@ app.get("/api/admin/users", auth, async (req, res) => {
 		Date.now() - new Date(d.lastUpdate).getTime()
 	  );
 	});
-
-    const data =
-      await Data.find({
-        account: { $in: accountNumbers }
-      });
 
     const now = Date.now();
 
