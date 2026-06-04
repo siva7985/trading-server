@@ -307,6 +307,20 @@ app.get("/api/admin/users", auth, async (req, res) => {
 
     const accountNumbers =
       user.accounts.map(a => a.account);
+	  
+	console.log("USER:", user.username);
+	console.log("ACCOUNTS:", accountNumbers);
+
+	data.forEach(d => {
+	  console.log(
+		"ACCOUNT:",
+		d.account,
+		"LAST UPDATE:",
+		d.lastUpdate,
+		"DIFF:",
+		Date.now() - new Date(d.lastUpdate).getTime()
+	  );
+	});
 
     const data =
       await Data.find({
@@ -322,7 +336,7 @@ app.get("/api/admin/users", auth, async (req, res) => {
       const diff =
         now - new Date(d.lastUpdate).getTime();
 
-      return diff < 30000; // 30 seconds
+      return diff < 120000; // 30 seconds
     });
 
     const userOnline =
@@ -331,10 +345,13 @@ app.get("/api/admin/users", auth, async (req, res) => {
 
 	result.push({
 	  ...user.toObject(),
-
-	  userOnline: userOnline,
-
-	  tradingOnline: boolIsOnline
+	  userOnline,
+	  tradingOnline: boolIsOnline,
+	  accountDebug: data.map(d => ({
+		account: d.account,
+		lastUpdate: d.lastUpdate,
+		diff: Date.now() - new Date(d.lastUpdate).getTime()
+	  }))
 	});
   }
 
