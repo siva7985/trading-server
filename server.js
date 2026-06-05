@@ -458,7 +458,7 @@ app.get("/api/admin/user-data/:userId", auth, async (req, res) => {
   });
   
   console.log(
-    "DATA FROM DB =",
+    "DATA FROM DB IN USER-DATA API =",
     JSON.stringify(data, null, 2)
   );
 
