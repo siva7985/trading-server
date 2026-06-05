@@ -456,6 +456,11 @@ app.get("/api/admin/user-data/:userId", auth, async (req, res) => {
   const data = await Data.find({
     account: { $in: accountNumbers }
   });
+  
+  console.log(
+    "DATA FROM DB =",
+    JSON.stringify(data, null, 2)
+  );
 
   const now = Date.now();
 
