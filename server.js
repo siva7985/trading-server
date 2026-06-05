@@ -1066,6 +1066,48 @@ app.post("/api/update", verifySecret, async (req, res) => {
       new: true
     }
   );
+  
+  const updated = await Data.findOneAndUpdate(
+	  { userId: user._id, account },
+	  {
+		userId: user._id,
+		account,
+		balance,
+		equity,
+		profit,
+		prices,
+		trades,
+		settings: finalSettings,
+		eaRunning,
+		mt5Connected,
+		vpsOnline,
+		lastUpdate: new Date(),
+		ping,
+	  },
+	  {
+		upsert: true,
+		new: true
+	  }
+	);
+
+	console.log(
+	  "UPDATE RECEIVED:",
+	  account,
+	  "PROFIT:",
+	  profit,
+	  "EQUITY:",
+	  equity,
+	  "TRADES:",
+	  trades?.length || 0
+	);
+
+	console.log(
+	  "DB SAVED:",
+	  updated.account,
+	  updated.profit,
+	  updated.equity,
+	  updated.lastUpdate
+	);
 
   res.send("OK");
 });
