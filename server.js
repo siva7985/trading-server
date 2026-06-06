@@ -69,6 +69,7 @@ mongoose.connect(process.env.MONGO_URI)
   console.log(err);
 });
 
+const ONLINE_TIMEOUT = 30000;
 
 /* =========================
    📦 USER MODEL
@@ -329,7 +330,7 @@ app.get("/api/admin/users", auth, async (req, res) => {
 
     const now = Date.now();
 
-    boolIsOnline = data.some(d => {
+    const boolIsOnline = data.some(d => {
 
       if (!d.lastUpdate) return false;
 
@@ -471,7 +472,7 @@ app.get("/api/admin/user-data/:userId", auth, async (req, res) => {
     const diff =
       now - new Date(d.lastUpdate).getTime();
 
-    return diff < 30000; // 30 seconds
+    return diff < ONLINE_TIMEOUT; // 30 seconds
   });
 
   const result = user.accounts.map(acc => {
@@ -482,7 +483,7 @@ app.get("/api/admin/user-data/:userId", auth, async (req, res) => {
 
     const isOnline =
 	  d?.lastUpdate &&
-	  (Date.now() - new Date(d.lastUpdate).getTime()) < 30000;
+	  (Date.now() - new Date(d.lastUpdate).getTime()) < ONLINE_TIMEOUT;
 
 	return {
 	  account: acc.account,
@@ -1041,7 +1042,7 @@ app.post("/api/update", verifySecret, async (req, res) => {
 		? settings
 		: existingData?.settings || [];
 
-  await Data.findOneAndUpdate(
+  /*await Data.findOneAndUpdate(
     { userId: user._id, account },
 
     {
@@ -1070,7 +1071,7 @@ app.post("/api/update", verifySecret, async (req, res) => {
       upsert: true,
       new: true
     }
-  );
+  );*/
   
   const updated = await Data.findOneAndUpdate(
 	  { userId: user._id, account },
@@ -1408,7 +1409,7 @@ app.get("/api/data", auth, async (req, res) => {
 	  const diff = now - lastUpdate;
 
 	  /// 30 seconds timeout
-	  const isLive = diff < 30000;
+	  const isLive = diff < ONLINE_TIMEOUT;
 
 	  return {
 
@@ -1889,7 +1890,7 @@ app.post("/api/save-settings", async (req, res) => {
     const updated = await User.updateOne(
 
       {
-        accounts: account
+        "accounts.account": account
       },
 
       {
