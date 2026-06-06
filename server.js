@@ -69,7 +69,7 @@ mongoose.connect(process.env.MONGO_URI)
   console.log(err);
 });
 
-const ONLINE_TIMEOUT = 30000;
+const ONLINE_TIMEOUT = 120000;
 
 /* =========================
    📦 USER MODEL
@@ -337,7 +337,7 @@ app.get("/api/admin/users", auth, async (req, res) => {
       const diff =
         now - new Date(d.lastUpdate).getTime();
 
-      return diff < 120000; // 30 seconds
+      return diff < ONLINE_TIMEOUT; // 30 seconds
     });
 	
 	/*console.log(
@@ -1414,6 +1414,8 @@ app.get("/api/data", auth, async (req, res) => {
 	  return {
 
 		account: accountNumber,
+		
+		tradingOnline: isLive,
 
 		accountName: accObj.accountName || "",
 
