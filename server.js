@@ -1126,6 +1126,8 @@ app.post("/api/update", verifySecret, async (req, res) => {
 ========================= */
 
 app.post("/api/update-account", auth, async (req, res) => {
+	console.log("UPDATE ACCOUNT API HIT 🚀");
+	
   try {
     const userId = req.user.id;
 
