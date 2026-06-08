@@ -2003,6 +2003,10 @@ io.on("connection", (socket) => {
     time: new Date()
   });
 
+  socket.emit("users_updated", {
+    message: "Test Users Update 🚀"
+  });
+
   socket.on("disconnect", () => {
     console.log("Client Disconnected:", socket.id);
   });
