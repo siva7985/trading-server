@@ -1223,6 +1223,8 @@ app.post("/api/update-account", auth, async (req, res) => {
         }
       }
     );
+	
+	global.io.emit("users_updated");
 
     res.json({
       success: true,
