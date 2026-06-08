@@ -1998,11 +1998,6 @@ io.on("connection", (socket) => {
 
   console.log("Client Connected:", socket.id);
 
-  socket.emit("test_message", {
-    message: "Socket Connected Successfully 🚀",
-    time: new Date()
-  });
-
   socket.emit("users_updated", {
     message: "Test Users Update 🚀"
   });
