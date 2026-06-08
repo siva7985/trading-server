@@ -2,6 +2,9 @@ require("dotenv").config({
   quiet: true
 });
 
+const http = require("http");
+const { Server } = require("socket.io");
+
 const SECRET_KEY = process.env.SECRET_KEY;
 
 const express = require("express");
@@ -1969,6 +1972,34 @@ app.get("/", (req, res) => {
 ========================= */
 const PORT = process.env.PORT || 3000;
 
-app.listen(PORT, "0.0.0.0", () => {
-  console.log("Server running on port", PORT);
+const server = http.createServer(app);
+
+const io = new Server(server, {
+  cors: {
+    origin: "*",
+    methods: ["GET", "POST"],
+  },
+});
+
+global.io = io;
+
+console.log("Socket.IO Ready ✅");
+
+server.listen(PORT, () => {
+  console.log("Server Running");
+});
+
+io.on("connection", (socket) => {
+
+  console.log("Client Connected:", socket.id);
+
+  socket.emit("test_message", {
+    message: "Socket Connected Successfully 🚀",
+    time: new Date()
+  });
+
+  socket.on("disconnect", () => {
+    console.log("Client Disconnected:", socket.id);
+  });
+
 });
