@@ -1099,7 +1099,7 @@ app.post("/api/update", verifySecret, async (req, res) => {
 	  }
 	);
 
-	console.log(
+	/*console.log(
 	  "UPDATE RECEIVED:",
 	  account,
 	  "PROFIT:",
@@ -1116,7 +1116,7 @@ app.post("/api/update", verifySecret, async (req, res) => {
 	  updated.profit,
 	  updated.equity,
 	  updated.lastUpdate
-	);
+	);*/
 
   res.send("OK");
 });
