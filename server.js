@@ -1226,7 +1226,12 @@ app.post("/api/update-account", auth, async (req, res) => {
       }
     );
 	
-	global.io.emit("users_updated");
+	console.log("CONNECTED CLIENTS:", global.io.engine.clientsCount);
+
+	global.io.emit("users_updated", {
+	  source: "update-account"
+	});
+
 	console.log("USERS_UPDATED EVENT SENT 🚀");
 
     res.json({
@@ -1997,10 +2002,6 @@ server.listen(PORT, () => {
 io.on("connection", (socket) => {
 
   console.log("Client Connected:", socket.id);
-
-  socket.emit("users_updated", {
-    message: "Test Users Update 🚀"
-  });
 
   socket.on("disconnect", () => {
     console.log("Client Disconnected:", socket.id);
