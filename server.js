@@ -1225,6 +1225,7 @@ app.post("/api/update-account", auth, async (req, res) => {
     );
 	
 	global.io.emit("users_updated");
+	console.log("USERS_UPDATED EVENT SENT 🚀");
 
     res.json({
       success: true,
