@@ -298,80 +298,80 @@ app.get("/api/admin/user/:userId", auth, async (req, res) => {
 app.get("/api/admin/users", auth, async (req, res) => {
 
   if (req.user.role !== "admin") {
-    return res.status(403).json({ error: "Access denied" });
+    return res.status(403).json({
+      error: "Access denied"
+    });
   }
 
-  const users = await User.find(
-    { role: "user" }
+  const users = await User.find({
+    role: "user"
+  });
+
+  // ✅ Collect all accounts from all users
+  const allAccounts = users.flatMap(
+    user => (user.accounts || []).map(a => a.account)
   );
 
-  const result = [];
+  // ✅ Single MongoDB query
+  const allData = await Data.find({
+    account: { $in: allAccounts }
+  });
 
-  for (const user of users) {
+  // ✅ Fast lookup map
+  const dataMap = new Map();
+
+  allData.forEach(d => {
+    dataMap.set(d.account, d);
+  });
+
+  const now = Date.now();
+
+  const result = users.map(user => {
 
     const accountNumbers =
-      user.accounts.map(a => a.account);
-	  
-	//console.log("USER:", user.username);
-	//console.log("ACCOUNTS:", accountNumbers);
-	
-	const data =
-      await Data.find({
-        account: { $in: accountNumbers }
-      });
+      (user.accounts || []).map(a => a.account);
 
-	/*data.forEach(d => {
-	  console.log(
-		"ACCOUNT:",
-		d.account,
-		"LAST UPDATE:",
-		d.lastUpdate,
-		"DIFF:",
-		Date.now() - new Date(d.lastUpdate).getTime()
-	  );
-	});*/
+    // ✅ Get account data from memory
+    const data = accountNumbers
+      .map(acc => dataMap.get(acc))
+      .filter(Boolean);
 
-    const now = Date.now();
-
-    const boolIsOnline = data.some(d => {
+    const tradingOnline = data.some(d => {
 
       if (!d.lastUpdate) return false;
 
       const diff =
         now - new Date(d.lastUpdate).getTime();
 
-      return diff < ONLINE_TIMEOUT; // 30 seconds
+      return diff < ONLINE_TIMEOUT;
+
     });
-	
-	/*console.log(
-		  "USER:",
-		  user.username,
-		  "TRADING ONLINE:",
-		  boolIsOnline
-		);
-		
-	console.log(
-	  "DATA COUNT:",
-	  data.length
-	);*/
 
     const userOnline =
-	  user.lastSeen &&
-	  (Date.now() - new Date(user.lastSeen).getTime()) < 60000;
+      user.lastSeen &&
+      (now - new Date(user.lastSeen).getTime()) < 60000;
 
-	result.push({
-	  ...user.toObject(),
-	  userOnline,
-	  tradingOnline: boolIsOnline,
-	  accountDebug: data.map(d => ({
-		account: d.account,
-		lastUpdate: d.lastUpdate,
-		diff: Date.now() - new Date(d.lastUpdate).getTime()
-	  }))
-	});
-  }
+    return {
+
+      ...user.toObject(),
+
+      userOnline,
+
+      tradingOnline,
+
+      accountDebug: data.map(d => ({
+        account: d.account,
+        lastUpdate: d.lastUpdate,
+        diff:
+          now - new Date(d.lastUpdate).getTime()
+      }))
+
+    };
+
+  });
 
   res.json(result);
+
 });
 
 app.post("/api/admin/delete-user", auth, async (req, res) => {
