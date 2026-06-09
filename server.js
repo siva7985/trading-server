@@ -1398,94 +1398,68 @@ app.get("/api/data", auth, async (req, res) => {
   const userId = req.user.id;
 
   const user = await User.findById(userId);
-  
-  if (!user.isActive) {
-	  return res.status(403).json({
-		error: "Account suspended"
-	  });
-	}
 
-  const accountNumbers =
-	 user.accounts.map(
-	   a => a.account
-	 );
+  if (!user?.isActive) {
+    return res.status(403).json({ error: "Account suspended" });
+  }
 
-	const data =
-	 await Data.find({
-	   account: {
-		 $in: accountNumbers
-	   }
-	 });
+  const accountNumbers = (user.accounts || []).map(a => a.account);
 
-  const result = user.accounts.map(accObj => {
-
-	  const accountNumber = accObj.account;
-
-	  const d = data.find(
-		x => x.account === accountNumber
-	  );
-
-	  const now = Date.now();
-
-	  const lastUpdate = d?.lastUpdate
-		? new Date(d.lastUpdate).getTime()
-		: 0;
-
-	  const diff = now - lastUpdate;
-
-	  /// 30 seconds timeout
-	  const isLive = diff < ONLINE_TIMEOUT;
-
-	  return {
-
-		account: accountNumber,
-		
-		tradingOnline: isLive,
-
-		accountName: accObj.accountName || "",
-
-		accountType: accObj.accountType || "",
-
-		currency: accObj.currency || "",
-
-		platform: accObj.platform || "",
-
-		server: accObj.server || "",
-
-		balance: d?.balance || null,
-
-		equity: d?.equity || null,
-
-		profit: d?.profit || null,
-
-		prices: d?.prices || {},
-
-		eaRunning: isLive && d?.eaRunning,
-
-		mt5Connected: isLive && d?.mt5Connected,
-
-		vpsOnline: isLive && d?.vpsOnline,
-
-		ping: isLive ? (d?.ping || 0) : 0,
-
-		lastUpdate: d?.lastUpdate || null,
-
-		trades: d?.trades || [],
-
-		settings: d?.settings || []
-	  };
-	});
-  res.json({
-	  username: user.username,
-	  fullName: user.fullName,
-	  gender: user.gender,
-	  email: user.email,
-	  phone: user.phone,
-	  country: user.country,
-	  accounts: result
-	});
-	
+  const data = await Data.find({
+    account: { $in: accountNumbers }
   });
+
+  const dataMap = new Map(data.map(d => [d.account, d]));
+
+  const now = Date.now();
+
+  const result = (user.accounts || []).map(accObj => {
+    const accountNumber = accObj.account;
+    const d = dataMap.get(accountNumber);
+
+    const lastUpdate = d?.lastUpdate
+      ? new Date(d.lastUpdate).getTime()
+      : 0;
+
+    const isLive = now - lastUpdate < ONLINE_TIMEOUT;
+
+    return {
+      account: accountNumber,
+      tradingOnline: isLive,
+
+      accountName: accObj.accountName || "",
+      accountType: accObj.accountType || "",
+      currency: accObj.currency || "",
+      platform: accObj.platform || "",
+      server: accObj.server || "",
+
+      balance: d?.balance ?? null,
+      equity: d?.equity ?? null,
+      profit: d?.profit ?? null,
+
+      prices: d?.prices || {},
+      trades: d?.trades || [],
+      settings: d?.settings || [],
+
+      eaRunning: isLive && !!d?.eaRunning,
+      mt5Connected: isLive && !!d?.mt5Connected,
+      vpsOnline: isLive && !!d?.vpsOnline,
+
+      ping: isLive ? (d?.ping || 0) : 0,
+      lastUpdate: d?.lastUpdate || null
+    };
+  });
+
+  res.json({
+    username: user.username,
+    fullName: user.fullName,
+    gender: user.gender,
+    email: user.email,
+    phone: user.phone,
+    country: user.country,
+    accounts: result
+  });
+});
   
 /* =========================
    📌 EA UPDATE-SETTINGS
