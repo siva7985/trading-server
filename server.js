@@ -950,7 +950,7 @@ app.post("/api/add-account", auth, async (req, res) => {
 	});
   await user.save();
   
-  global.io.emit("users_updated", {
+  io.to(userId).emit("users_updated", {
 	  source: "add-account"
 	});
 
@@ -1232,7 +1232,7 @@ app.post("/api/update-account", auth, async (req, res) => {
 	
 	console.log("CONNECTED CLIENTS:", global.io.engine.clientsCount);
 
-	global.io.emit("users_updated", {
+	io.to(userId).emit("users_updated", {
 	  source: "update-account"
 	});
 
@@ -1274,7 +1274,7 @@ app.post("/api/update-profile", auth, async (req, res) => {
 
     await user.save();
 	
-	global.io.emit("users_updated", {
+	io.to(userId).emit("users_updated", {
 	  source: "update-profile"
 	});
 
@@ -1376,7 +1376,7 @@ app.post("/api/delete-account", auth, async (req, res) => {
 	 );
     await user.save();
 	
-	global.io.emit("users_updated", {
+	io.to(userId).emit("users_updated", {
 	  source: "delete-account"
 	});
 
@@ -1988,6 +1988,10 @@ server.listen(PORT, () => {
 io.on("connection", (socket) => {
 
   console.log("Client Connected:", socket.id);
+  
+  socket.on("join", (userId) => {
+    socket.join(userId);
+  });
 
   socket.on("disconnect", () => {
     console.log("Client Disconnected:", socket.id);
