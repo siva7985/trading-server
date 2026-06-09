@@ -303,9 +303,11 @@ app.get("/api/admin/users", auth, async (req, res) => {
     });
   }
 
-  const users = await User.find({
-    role: "user"
-  });
+  const users = await User.find(
+	  { role: "user" }
+	).select(
+	  "-password -otp -otpExpiry -__v"
+	);
 
   // ✅ Collect all accounts from all users
   const allAccounts = users.flatMap(
@@ -685,7 +687,7 @@ const rateLimit = require("express-rate-limit");
 
 const loginLimiter = rateLimit({
    windowMs: 15 * 60 * 1000,
-   max: 5
+   max: 10
 });
 
 app.post("/api/login", loginLimiter, async (req, res) => {
@@ -889,6 +891,12 @@ CommandSchema.index(
   { createdAt: 1 },
   { expireAfterSeconds: 86400 }
 );
+
+CommandSchema.index({
+  account: 1,
+  status: 1,
+  createdAt: 1
+});
 
 const Command = mongoose.model("Command", CommandSchema);
 
@@ -1770,8 +1778,6 @@ app.get("/api/command", verifySecret, async (req, res) => {
 
   try {
 
-    //console.log("REQ QUERY =", req.query);
-
     const account = req.query.account;
 
     if (!account) {
@@ -1780,10 +1786,21 @@ app.get("/api/command", verifySecret, async (req, res) => {
       });
     }
 
-    const cmd = await Command.findOne({
-      account,
-      status: "pending"
-    }).sort({ createdAt: 1 });
+    const cmd = await Command.findOneAndUpdate(
+      {
+        account,
+        status: "pending"
+      },
+      {
+        $set: {
+          status: "processing"
+        }
+      },
+      {
+        sort: { createdAt: 1 },
+        new: true
+      }
+    );
 
     if (!cmd) {
       return res.json({
@@ -1791,34 +1808,29 @@ app.get("/api/command", verifySecret, async (req, res) => {
       });
     }
 
-    // ✅ mark processing immediately
-    cmd.status = "processing";
-
-    await cmd.save();
-
     console.log("SENDING COMMAND =", cmd);
 
     res.json({
 
-		  success: true,
+      success: true,
 
-		  command: cmd.command,
+      command: cmd.command,
 
-		  symbol: cmd.symbol,
+      symbol: cmd.symbol,
 
-		  lot: cmd.lot,
+      lot: cmd.lot,
 
-		  price: cmd.price,
+      price: cmd.price,
 
-		  ticket: cmd.ticket,
+      ticket: cmd.ticket,
 
-		  sl: cmd.sl,
+      sl: cmd.sl,
 
-		  tp: cmd.tp,
+      tp: cmd.tp,
 
-		  id: cmd._id
+      id: cmd._id
 
-		});
+    });
 
   } catch (err) {
 
@@ -1832,13 +1844,11 @@ app.get("/api/command", verifySecret, async (req, res) => {
 
 });
 
-app.get("/api/ack", verifySecret, async (req, res) => {
+app.post("/api/ack", verifySecret, async (req, res) => {
 
   try {
 
-    //console.log("ACK BODY =", req.body);
-
-    const { id } = req.body;
+    const id = req.query.id;
 
     if (!id) {
 
@@ -1849,7 +1859,17 @@ app.get("/api/ack", verifySecret, async (req, res) => {
 
     }
 
-    const cmd = await Command.findById(id);
+    const cmd = await Command.findByIdAndUpdate(
+      id,
+      {
+        $set: {
+          status: "completed"
+        }
+      },
+      {
+        new: true
+      }
+    );
 
     if (!cmd) {
 
@@ -1859,10 +1879,6 @@ app.get("/api/ack", verifySecret, async (req, res) => {
       });
 
     }
-
-    cmd.status = "completed";
-
-    await cmd.save();
 
     console.log("COMMAND COMPLETED =", id);
 
