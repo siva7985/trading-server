@@ -1102,6 +1102,16 @@ app.post("/api/update", verifySecret, async (req, res) => {
 		new: true
 	  }
 	);
+	
+	io.to(user._id.toString()).emit("account_live", {
+	  account,
+	  balance,
+	  equity,
+	  profit,
+	  prices,
+	  trades,
+	  lastUpdate: new Date()
+	});
 
 	/*console.log(
 	  "UPDATE RECEIVED:",
