@@ -949,6 +949,10 @@ app.post("/api/add-account", auth, async (req, res) => {
 	  server
 	});
   await user.save();
+  
+  global.io.emit("users_updated", {
+	  source: "add-account"
+	});
 
   res.json({ message: "Account added successfully" });
 });
@@ -1269,6 +1273,10 @@ app.post("/api/update-profile", auth, async (req, res) => {
     user.email = email || user.email;
 
     await user.save();
+	
+	global.io.emit("users_updated", {
+	  source: "update-profile"
+	});
 
     res.json({
       message: "Profile updated ✅",
@@ -1367,6 +1375,10 @@ app.post("/api/delete-account", auth, async (req, res) => {
 	   acc => acc.account !== account
 	 );
     await user.save();
+	
+	global.io.emit("users_updated", {
+	  source: "delete-account"
+	});
 
     // ✅ Optional: remove its data (recommended)
     await Data.deleteMany({ account });
