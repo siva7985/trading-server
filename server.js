@@ -263,6 +263,13 @@ async function auth(req, res, next) {
   });
 }
 
+/*================================
+       EAActivation
+==================================*/
+
+const EAActivation =
+  require("./models/EAActivation");
+
 /* =========================
    🔐 ADMIN 
 ========================= */
