@@ -2003,14 +2003,32 @@ app.post("/api/activate-ea", auth, async (req, res) => {
 
 
 
-app.get("/api/test-activations", async (req, res) => {
+app.get("/api/test-create-activation", async (req, res) => {
 
   try {
 
-    const activations =
-      await EAActivation.find();
+    const activation =
+      await EAActivation.create({
 
-    res.json(activations);
+        userId: new mongoose.Types.ObjectId(),
+
+        account: "415720714",
+
+        eaId: "gold_scalper_v1",
+
+        status: "active",
+
+        settings: {
+          lot: 0.01,
+          risk: 2
+        }
+
+      });
+
+    res.json({
+      success: true,
+      activation
+    });
 
   } catch (err) {
 
