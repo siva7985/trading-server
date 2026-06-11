@@ -2001,12 +2001,28 @@ app.post("/api/activate-ea", auth, async (req, res) => {
 
 });
 
-app.get("/api/test-activate", async (req, res) => {
 
-  res.json({
-    success: true,
-    message: "EA Activation API Working"
-  });
+
+app.get("/api/my-activations", auth, async (req, res) => {
+
+  try {
+
+    const activations =
+      await EAActivation.find({
+        userId: req.user.id
+      });
+
+    res.json(activations);
+
+  } catch (err) {
+
+    console.log(err);
+
+    res.status(500).json({
+      success: false
+    });
+
+  }
 
 });
 
