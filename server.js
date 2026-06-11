@@ -2001,6 +2001,15 @@ app.post("/api/activate-ea", auth, async (req, res) => {
 
 });
 
+app.get("/api/test-activate", async (req, res) => {
+
+  res.json({
+    success: true,
+    message: "EA Activation API Working"
+  });
+
+});
+
 /*===========================================
       Delete Old Commands from DB
 ===========================================*/
