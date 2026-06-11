@@ -2003,36 +2003,54 @@ app.post("/api/activate-ea", auth, async (req, res) => {
 
 
 
-app.get("/api/test-create-activation", async (req, res) => {
+app.get("/api/my-activations", auth, async (req, res) => {
 
   try {
 
-    const activation =
-      await EAActivation.create({
-
-        userId: new mongoose.Types.ObjectId(),
-
-        account: "415720714",
-
-        eaId: "gold_scalper_v1",
-
-        status: "active",
-
-        settings: {
-          lot: 0.01,
-          risk: 2
-        }
-
+    const activations =
+      await EAActivation.find({
+        userId: req.user.id
       });
 
-    res.json({
-      success: true,
-      activation
-    });
+    res.json(activations);
 
   } catch (err) {
 
     console.log(err);
+
+    res.status(500).json({
+      success: false
+    });
+
+  }
+
+});
+
+app.get("/api/ea-activations", verifySecret, async (req, res) => {
+
+  try {
+
+    const { account } = req.query;
+
+    if (!account) {
+
+      return res.status(400).json({
+        error: "Missing account"
+      });
+
+    }
+
+    const activations =
+      await EAActivation.find({
+        account,
+        status: "active"
+      });
+
+    res.json(activations);
+
+  } catch (err) {
+
+    console.log("EA ACTIVATIONS ERROR =", err);
 
     res.status(500).json({
       success: false
