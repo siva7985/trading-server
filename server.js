@@ -1951,7 +1951,6 @@ app.post("/api/save-settings", async (req, res) => {
   }
 });
 
-/*
 app.post("/api/activate-ea", auth, async (req, res) => {
 
   try {
@@ -2000,7 +1999,7 @@ app.post("/api/activate-ea", auth, async (req, res) => {
 
   }
 
-});*/
+});
 
 /*===========================================
       Delete Old Commands from DB
