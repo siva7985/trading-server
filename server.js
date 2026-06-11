@@ -1951,6 +1951,56 @@ app.post("/api/save-settings", async (req, res) => {
   }
 });
 
+app.post("/api/activate-ea", auth, async (req, res) => {
+
+  try {
+
+    const {
+      account,
+      eaId,
+      lot,
+      risk
+    } = req.body;
+
+    const activation =
+      await EAActivation.findOneAndUpdate(
+        {
+          userId: req.user.id,
+          account,
+          eaId
+        },
+        {
+          $set: {
+            status: "active",
+            settings: {
+              lot,
+              risk
+            }
+          }
+        },
+        {
+          upsert: true,
+          new: true
+        }
+      );
+
+    res.json({
+      success: true,
+      activation
+    });
+
+  } catch (err) {
+
+    console.log("ACTIVATE EA ERROR =", err);
+
+    res.status(500).json({
+      success: false
+    });
+
+  }
+
+});
+
 /*===========================================
       Delete Old Commands from DB
 ===========================================*/
