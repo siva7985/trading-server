@@ -1111,7 +1111,7 @@ app.post("/api/update", verifySecret, async (req, res) => {
 	  }
 	);
 	
-	io.to(user._id.toString()).emit("account_live", {
+	global.io.to(user._id.toString()).emit("account_live", {
 	  account,
 	  balance,
 	  equity,
