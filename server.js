@@ -2003,6 +2003,20 @@ const io = new Server(server, {
   },
 });
 
+io.use((socket, next) => {
+  const token = socket.handshake.auth?.token;
+
+  if (!token) return next(new Error("No token"));
+
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    socket.user = decoded;
+    next();
+  } catch (err) {
+    next(new Error("Unauthorized"));
+  }
+});
+
 global.io = io;
 
 console.log("Socket.IO Ready ✅");
@@ -2016,6 +2030,7 @@ io.on("connection", (socket) => {
   console.log("Client Connected:", socket.id);
 
   socket.on("join", (userId) => {
+	if (socket.user.id !== userId) return;
 
     socket.join(userId);
 
