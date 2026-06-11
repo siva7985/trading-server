@@ -2003,14 +2003,12 @@ app.post("/api/activate-ea", auth, async (req, res) => {
 
 
 
-app.get("/api/my-activations", auth, async (req, res) => {
+app.get("/api/test-activations", async (req, res) => {
 
   try {
 
     const activations =
-      await EAActivation.find({
-        userId: req.user.id
-      });
+      await EAActivation.find();
 
     res.json(activations);
 
