@@ -1490,6 +1490,7 @@ app.get("/api/data", auth, async (req, res) => {
 
       prices: d?.prices || {},
       trades: d?.trades || [],
+	  history: d?.history || [],
       settings: d?.settings || [],
 
       eaRunning: isLive && !!d?.eaRunning,
