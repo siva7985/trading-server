@@ -272,6 +272,15 @@ async function auth(req, res, next) {
 const EAActivation =
   require("./models/EAActivation");
 
+
+/*================================
+       TradeHistory
+==================================*/  
+const TradeHistory =
+require("./models/TradeHistory");
+
+console.log("TradeHistory model loaded");
+
 /* =========================
    🔐 ADMIN 
 ========================= */
