@@ -1151,6 +1151,7 @@ app.post("/api/update", verifySecret, async (req, res) => {
 	  profit,
 	  prices,
 	  trades,
+	  history,
 	  lastUpdate: new Date()
 	});
 
