@@ -196,6 +196,8 @@ const DataSchema = new mongoose.Schema({
 
   trades: Array,
   
+  history: Array,
+  
   settings: {
     type: mongoose.Schema.Types.Mixed,
     default: []
@@ -1039,6 +1041,7 @@ app.post("/api/update", verifySecret, async (req, res) => {
     profit,
     prices,
     trades,
+	history,
     settings,
 
     eaRunning,
@@ -1105,6 +1108,7 @@ app.post("/api/update", verifySecret, async (req, res) => {
 		profit,
 		prices,
 		trades,
+		history,
 		settings: finalSettings,
 		eaRunning,
 		mt5Connected,
