@@ -1137,6 +1137,11 @@ app.post("/api/update", verifySecret, async (req, res) => {
 	  }
 	);
 	
+	console.log(
+	  "Saved History Count =",
+	  updated.history?.length || 0
+	);
+	
 	console.log("history count =", history?.length || 0);
 	
 	global.io.to(user._id.toString()).emit("account_live", {
