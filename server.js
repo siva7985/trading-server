@@ -193,6 +193,11 @@ const DataSchema = new mongoose.Schema({
     type: String,
     required: true
   },
+  
+  eaName: {
+    type: String,
+    default: ""
+  },
 
   balance: Number,
   equity: Number,
@@ -240,6 +245,16 @@ const DataSchema = new mongoose.Schema({
 
 // 🔥 IMPORTANT (multi-account per user)
 DataSchema.index({ userId: 1, account: 1 }, { unique: true });
+
+DataSchema.index(
+  {
+    account: 1,
+    eaName: 1
+  },
+  {
+    unique: true
+  }
+);
 
 const Data = mongoose.model("Data", DataSchema);
 
@@ -1044,13 +1059,10 @@ app.post("/api/reset-password", async (req, res) => {
    📊 EA DATA UPDATE
 ========================= */
 app.post("/api/update", verifySecret, async (req, res) => {
-
-  //console.log(req.body);
-  
-  //console.log(JSON.stringify(req.body, null, 2));
   
   const {
     account,
+	eaName,
     balance,
     equity,
     profit,
@@ -1075,49 +1087,24 @@ app.post("/api/update", verifySecret, async (req, res) => {
   }
 
   // ✅ KEEP EXISTING SETTINGS
-  const existingData = await Data.findOne({ account });
+  const existingData =
+	  await Data.findOne({
+		account,
+		eaName
+	  });
 
   const finalSettings =
 	  settings && settings.length > 0
 		? settings
 		: existingData?.settings || [];
-
-  /*await Data.findOneAndUpdate(
-    { userId: user._id, account },
-
-    {
-      userId: user._id,
-
-      account,
-      balance,
-      equity,
-      profit,
-
-      prices,
-      trades,
-
-      settings: finalSettings,
-
-      eaRunning,
-      mt5Connected,
-      vpsOnline,
-
-      lastUpdate: new Date(),
-
-      ping,
-    },
-
-    {
-      upsert: true,
-      new: true
-    }
-  );*/
   
   const updated = await Data.findOneAndUpdate(
-	  { userId: user._id, account },
+	  { userId: user._id, account,
+              eaName },
 	  {
 		userId: user._id,
 		account,
+		eaName,
 		balance,
 		equity,
 		profit,
@@ -1146,6 +1133,7 @@ app.post("/api/update", verifySecret, async (req, res) => {
 	
 	global.io.to(user._id.toString()).emit("account_live", {
 	  account,
+	  eaName,
 	  balance,
 	  equity,
 	  profit,
@@ -1154,25 +1142,6 @@ app.post("/api/update", verifySecret, async (req, res) => {
 	  history,
 	  lastUpdate: new Date()
 	});
-
-	/*console.log(
-	  "UPDATE RECEIVED:",
-	  account,
-	  "PROFIT:",
-	  profit,
-	  "EQUITY:",
-	  equity,
-	  "TRADES:",
-	  trades?.length || 0
-	);
-
-	console.log(
-	  "DB SAVED:",
-	  updated.account,
-	  updated.profit,
-	  updated.equity,
-	  updated.lastUpdate
-	);*/
 
   res.send("OK");
 });
