@@ -1082,6 +1082,22 @@ app.post("/api/update", verifySecret, async (req, res) => {
 		account,
 		eaName
 	  });
+	  
+   // EA changed
+	if(existingData && existingData.eaName !== eaName)
+	{
+	   console.log(
+		  "EA changed from",
+		  existingData.eaName,
+		  "to",
+		  eaName
+	   );
+
+	   existingData.settings = [];
+	   existingData.eaName = eaName;
+
+	   await existingData.save();
+	}
 
   const finalSettings =
 	  settings && settings.length > 0
@@ -1089,8 +1105,7 @@ app.post("/api/update", verifySecret, async (req, res) => {
 		: existingData?.settings || [];
   
   const updated = await Data.findOneAndUpdate(
-	  { userId: user._id, account,
-              eaName },
+	  { userId: user._id, account},
 	  {
 		userId: user._id,
 		account,
@@ -1587,13 +1602,11 @@ app.get("/api/get-settings", verifySecret, async (req, res) => {
 	
 	console.log(
 	  "GET SETTINGS:",
-	  account,
-	  eaName
+	  account
 	);
 
     const data = await Data.findOne({
-      account,
-      eaName
+      account
     });
 
     if (!data || !data.settings) {
