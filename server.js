@@ -1589,12 +1589,22 @@ app.get("/api/get-settings", verifySecret, async (req, res) => {
   try {
 
     const account = req.query.account;
+    const eaName  = req.query.eaName;
 
-    if (!account) {
+    if (!account || !eaName) {
       return res.json({});
     }
+	
+	console.log(
+	  "GET SETTINGS:",
+	  account,
+	  eaName
+	);
 
-    const data = await Data.findOne({ account });
+    const data = await Data.findOne({
+      account,
+      eaName
+    });
 
     if (!data || !data.settings) {
       return res.json({});
@@ -1603,9 +1613,7 @@ app.get("/api/get-settings", verifySecret, async (req, res) => {
     const result = {};
 
     data.settings.forEach(item => {
-
       result[item.name] = String(item.value);
-
     });
 
     res.json(result);
