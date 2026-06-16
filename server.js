@@ -1144,6 +1144,8 @@ app.post("/api/update", verifySecret, async (req, res) => {
 	  }
 	);
 	
+	console.log(await Data.collection.indexes());
+	
 	console.log(
 	  "Saved History Count =",
 	  updated.history?.length || 0
