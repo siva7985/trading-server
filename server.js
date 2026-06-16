@@ -1615,7 +1615,9 @@ app.post("/api/update-settings", auth, async (req, res) => {
    📥 GET SETTINGS
 ========================= */
 app.get("/api/get-settings", verifySecret, async (req, res) => {
-
+	
+	console.log("QUERY =", req.query);
+	
   try {
 
     const account = req.query.account;
