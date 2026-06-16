@@ -1073,6 +1073,9 @@ app.post("/api/update", verifySecret, async (req, res) => {
     vpsOnline,
     ping,
   } = req.body;
+  
+  
+  console.log("EA NAME RECEIVED After =", eaName);
 
   const user =
 	 await User.findOne({
