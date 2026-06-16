@@ -244,17 +244,8 @@ const DataSchema = new mongoose.Schema({
 });
 
 // 🔥 IMPORTANT (multi-account per user)
-DataSchema.index({ userId: 1, account: 1 }, { unique: true });
+DataSchema.index({ userId: 1, account: 1, eaName: 1 }, { unique: true });
 
-DataSchema.index(
-  {
-    account: 1,
-    eaName: 1
-  },
-  {
-    unique: true
-  }
-);
 
 const Data = mongoose.model("Data", DataSchema);
 
