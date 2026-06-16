@@ -1052,6 +1052,11 @@ app.post("/api/update", verifySecret, async (req, res) => {
   
   console.log("UPDATE BODY =", req.body);
   
+  console.log(
+	  "EA NAME RECEIVED =",
+	  req.body.eaName
+	);
+  
   const {
     account,
 	eaName,
@@ -1105,6 +1110,14 @@ app.post("/api/update", verifySecret, async (req, res) => {
 	  settings && settings.length > 0
 		? settings
 		: existingData?.settings || [];
+	
+	console.log(
+		  "FILTER = ",
+		  {
+			userId: user._id,
+			account
+		  }
+		);
   
   const updated = await Data.findOneAndUpdate(
 	  { userId: user._id, account},
