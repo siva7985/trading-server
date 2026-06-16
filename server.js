@@ -1050,7 +1050,7 @@ app.post("/api/reset-password", async (req, res) => {
 ========================= */
 app.post("/api/update", verifySecret, async (req, res) => {
   
-  console.log("UPDATE BODY =", req.body);
+  //console.log("UPDATE BODY =", req.body);
   
   console.log(
 	  "EA NAME RECEIVED =",
@@ -1118,6 +1118,12 @@ app.post("/api/update", verifySecret, async (req, res) => {
 			account
 		  }
 		);
+   console.log(
+	  await Data.find({
+		userId: user._id,
+		account
+	  })
+	);
   
   const updated = await Data.findOneAndUpdate(
 	  { userId: user._id, account},
