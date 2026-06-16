@@ -1086,8 +1086,7 @@ app.post("/api/update", verifySecret, async (req, res) => {
   // ✅ KEEP EXISTING SETTINGS
   const existingData =
 	  await Data.findOne({
-		account,
-		eaName
+		account
 	  });
 	  
    // EA changed
@@ -1111,7 +1110,7 @@ app.post("/api/update", verifySecret, async (req, res) => {
 		? settings
 		: existingData?.settings || [];
 	
-	console.log(
+	/*console.log(
 		  "FILTER = ",
 		  {
 			userId: user._id,
@@ -1123,7 +1122,7 @@ app.post("/api/update", verifySecret, async (req, res) => {
 		userId: user._id,
 		account
 	  })
-	);
+	);*/
   
   const updated = await Data.findOneAndUpdate(
 	  { userId: user._id, account},
@@ -1150,7 +1149,7 @@ app.post("/api/update", verifySecret, async (req, res) => {
 	  }
 	);
 	
-	console.log(await Data.collection.indexes());
+	//console.log(await Data.collection.indexes());
 	
 	console.log(
 	  "Saved History Count =",
